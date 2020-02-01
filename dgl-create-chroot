@@ -10,7 +10,7 @@
 
 
 # Same as chroot_path in dgl config file
-CHROOT="/opt/nethack/nethack.alt.org/"
+CHROOT="/opt/gnollhack/server.gnollhack.com/"
 # the user & group from dgamelaunch config file.
 USRGRP="games:games"
 # COMPRESS from include/config.h; the compression binary to copy. leave blank to skip.
@@ -20,9 +20,9 @@ COMPRESSBIN="/bin/gzip"
 # fixed data to copy (leave blank to skip)
 #NH_PLAYGROUND_FIXED="/home/paxed/hacking/coding/nethacksource/nethack-3.4.3-nao/nh343/"
 # HACKDIR from include/config.h; aka nethack subdir inside chroot
-NHSUBDIR="/nh343/"
+NHSUBDIR="/gnh/"
 # VAR_PLAYGROUND from include/unixconf.h
-NH_VAR_PLAYGROUND="/nh343/var/"
+NH_VAR_PLAYGROUND="/gnh/var/"
 
 # only define this if dgl was configured with --enable-sqlite
 SQLITE_DBFILE="/dgldir/dgamelaunch.db"
