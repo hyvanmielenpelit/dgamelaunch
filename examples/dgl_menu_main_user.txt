@@ -1,6 +1,6 @@
  ## $SERVERID
  ##
- ## $VERSION - network console game launcher
+ ## $VERSION - Network console game launcher
  ## Copyright (c) 2000-2010 The Dgamelaunch Team
  ## Server maintained by Sound Mind Games
  ##
