@@ -91,9 +91,9 @@ chown "$USRGRP" dgldir mail
 cp "$CURDIR/dgamelaunch" "$DGLFILE"
 ln -s "$DGLFILE" dgamelaunch
 
-mkdir -p "$CHROOT/dgldir/inprogress-nh343"
+mkdir -p "$CHROOT/dgldir/inprogress-gnh"
 mkdir -p "$CHROOT/dgldir/userdata"
-chown "$USRGRP" "$CHROOT/dgldir/inprogress-nh343"
+chown "$USRGRP" "$CHROOT/dgldir/inprogress-gnh"
 chown "$USRGRP" "$CHROOT/dgldir/userdata"
 
 
@@ -145,8 +145,8 @@ cp "$CURDIR/examples/dgl_menu_main_anon.txt" .
 cp "$CURDIR/examples/dgl_menu_main_user.txt" .
 cp "$CURDIR/examples/dgl_menu_watchmenu_help.txt" .
 cp "$CURDIR/examples/dgl-banner" .
-cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile.nh343"
-chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner dgl-default-rcfile.nh343
+cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile.gnh"
+chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner dgl-default-rcfile.gnh
 
 NHSUBDIR="`echo ${NHSUBDIR%/}`"
 NHSUBDIR="`echo ${NHSUBDIR#/}`"

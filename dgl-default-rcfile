@@ -1,5 +1,5 @@
-# This is an example nethackrc file. You should edit this to suit the needs
-# of your personal nethack build and add some reasonable default options
+# This is an example gnollhackrc file. You should edit this to suit the needs
+# of your personal GnollHack build and add some reasonable default options
 # for your users.
 
 # If you compiled dgamelaunch with the `vi' editor enabled instead of ee,
@@ -13,7 +13,8 @@
 
 OPTIONS=showexp,showscore,time,color,!autopickup
 OPTIONS=autodig,fruit:slime mold,boulder:0
+OPTIONS=number_pad:2,altmeta,force_invmenu
 
-# For more information on what you can set in your nethackrc file, refer to:
-#   http://www.nethack.org/v343/Guidebook.html#_TOCentry_42
-# Happy hacking!
+# For more information on what you can set in your gnollhackrc file, refer to:
+#   https://gnollhack.com
+# Happy gnollhacking!
