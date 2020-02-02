@@ -2,9 +2,9 @@
  ##
  ## $VERSION - network console game launcher
  ## Copyright (c) 2000-2010 The Dgamelaunch Team
- ## See http://nethackwiki.com/wiki/dgamelaunch for more info
+ ## Server maintained by Sound Mind Games
  ##
- ## Games on this server are recorded for in-progress viewing and playback!
+ ## Games on this server are recorded for in-progress viewing and playback.
 
  Logged in as: $USERNAME
 
