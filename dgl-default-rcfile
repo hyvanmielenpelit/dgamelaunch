@@ -13,8 +13,8 @@
 
 OPTIONS=showexp,showscore,time,color,!autopickup
 OPTIONS=autodig,fruit:slime mold,boulder:0
-OPTIONS=number_pad:2,altmeta,force_invmenu
+OPTIONS=number_pad:2,altmeta,force_invmenu,hilite_pet
 
 # For more information on what you can set in your gnollhackrc file, refer to:
-#   https://gnollhack.com
+#   https://nethackwiki.com/wiki/Options
 # Happy gnollhacking!
