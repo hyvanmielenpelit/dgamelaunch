@@ -2861,19 +2861,19 @@ main (int argc, char** argv)
 			  perror("setgroups");
 			  graceful_exit(4);
 		  }
+		  if (setgid(globalconfig.shed_gid) == -1)
+		  {
+			  perror("setgid");
+			  graceful_exit(5);
+		  }
+
+		  if (setuid(globalconfig.shed_uid) == -1)
+		  {
+			  perror("setuid");
+			  graceful_exit(6);
+		  }
 	  }
 
-      if (setgid (globalconfig.shed_gid) == -1)
-	{
-	  perror ("setgid");
-	  graceful_exit (5);
-	}
-
-      if (setuid (globalconfig.shed_uid) == -1)
-	{
-	  perror ("setuid");
-	  graceful_exit (6);
-	}
     }
 
   if (globalconfig.locale) {
