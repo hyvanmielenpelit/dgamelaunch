@@ -2835,13 +2835,11 @@ main (int argc, char** argv)
 #endif
 #endif
 
-  int chrootfailed = 0;
   if (geteuid () != globalconfig.shed_uid)
     {
       /* chroot */
       if (chroot (globalconfig.chroot))
 	{
-		  chrootfailed = 1;
 	  /* Assume that you have been already chrooted by root and you are not root */
 	  //perror ("cannot change root directory");
 	  //graceful_exit (2);
@@ -2854,24 +2852,21 @@ main (int argc, char** argv)
 	}
 
       /* shed privs. this is done immediately after chroot. */
-	  if (!chrootfailed)
+	  if (setgroups(1, &globalconfig.shed_gid) == -1)
 	  {
-		  if (setgroups(1, &globalconfig.shed_gid) == -1)
-		  {
-			  perror("setgroups");
-			  graceful_exit(4);
-		  }
-		  if (setgid(globalconfig.shed_gid) == -1)
-		  {
-			  perror("setgid");
-			  graceful_exit(5);
-		  }
+		  perror("setgroups");
+		  graceful_exit(4);
+	  }
+	  if (setgid(globalconfig.shed_gid) == -1)
+	  {
+		  perror("setgid");
+		  graceful_exit(5);
+	  }
 
-		  if (setuid(globalconfig.shed_uid) == -1)
-		  {
-			  perror("setuid");
-			  graceful_exit(6);
-		  }
+	  if (setuid(globalconfig.shed_uid) == -1)
+	  {
+		  perror("setuid");
+		  graceful_exit(6);
 	  }
 
     }
