@@ -2840,9 +2840,8 @@ main (int argc, char** argv)
       /* chroot */
       if (chroot (globalconfig.chroot))
 	{
-	  /* Assume that you have been already chrooted by root and you are not root */
-	  //perror ("cannot change root directory");
-	  //graceful_exit (2);
+	  perror ("cannot change root directory");
+	  graceful_exit (2);
 	}
 
       if (chdir ("/"))
