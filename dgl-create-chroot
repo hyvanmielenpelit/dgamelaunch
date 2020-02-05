@@ -15,8 +15,8 @@ CHROOT="/opt/gnollhack/server.gnollhack.com/"
 USRGRP="games:games"
 # COMPRESS from include/config.h; the compression binary to copy. leave blank to skip.
 COMPRESSBIN="/bin/gzip"
-# nethack binary to copy into chroot (leave blank to skip)
-#NETHACKBIN="/home/paxed/hacking/coding/nethacksource/nethack-3.4.3-nao/nh343/nethack.343-nao"
+# gnollhack binary to copy into chroot (leave blank to skip)
+#NETHACKBIN="/gnh/gnollhack"
 # fixed data to copy (leave blank to skip)
 #NH_PLAYGROUND_FIXED="/home/paxed/hacking/coding/nethacksource/nethack-3.4.3-nao/nh343/"
 # HACKDIR from include/config.h; aka nethack subdir inside chroot
