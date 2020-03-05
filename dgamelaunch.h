@@ -41,8 +41,13 @@ typedef enum
     DGLACCT_ADMIN       = 0x01,	/* admin account */
     DGLACCT_LOGIN_LOCK  = 0x02,	/* account is banned and cannot login */
     DGLACCT_PASSWD_LOCK = 0x04,	/* account password cannot be changed */
-    DGLACCT_EMAIL_LOCK  = 0x08	/* account email cannot be changed */
+    DGLACCT_EMAIL_LOCK  = 0x08,	/* account email cannot be changed */
+	DGLACCT_RC_FILE_1   = 0x10,	/* rc file 1 employed */
+	DGLACCT_RC_FILE_2   = 0x20,	/* rc file 2 employed */
+	DGLACCT_RC_FILE_3   = 0x40	/* rc file 3 employed */
 } dgl_acct_flag;
+
+#define DGLACCT_RC_FILE_MASK (DGLACCT_RC_FILE_1 | DGLACCT_RC_FILE_2 | DGLACCT_RC_FILE_3)
 
 typedef enum
 {
@@ -66,7 +71,7 @@ typedef enum
     DGLCMD_EXEC,	/* exec foo bar */
     DGLCMD_SETENV,	/* setenv foo bar */
     DGLCMD_WATCH_MENU,  /* watch_menu */
-    DGLCMD_LOGIN,       /* ask_login */
+	DGLCMD_LOGIN,       /* ask_login */
     DGLCMD_REGISTER,	/* ask_register */
     DGLCMD_QUIT,	/* quit */
     DGLCMD_CHMAIL,	/* chmail */

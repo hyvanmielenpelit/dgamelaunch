@@ -7,13 +7,20 @@
  ## Games on this server are recorded for in-progress viewing and playback.
 
  Logged in as: $USERNAME
+ Current options file: $RCFILE
 
- C) Change password
- E) Change email address
- W) Watch games in progress
- B) Base options file menu
- O) Edit options file ($RCFILE)
- P) Play GnollHack 4.0 Beta
- Q) Quit
+ Choose the base options file to copy into use:
+
+ 1) Curses Interface
+ 2) Normal with IBM Graphics
+ 3) Normal
+
+ Edit the base options file:
+ 
+ 4) Curses Interface
+ 5) Normal with IBM Graphics
+ 6) Normal
+ 
+ Q) Return to main menu
 
  =>
