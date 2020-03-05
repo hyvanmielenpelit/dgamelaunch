@@ -562,9 +562,9 @@ loadbanner (char *fname, struct dg_banner *ban)
 		  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$VERSION", PACKAGE_STRING), DGL_BANNER_LINELEN);
 
 		  const char* rc_file_name = 
-			  (me & DGLACCT_RC_FILE_1) ? "Curses Interface" : 
-			  (me & DGLACCT_RC_FILE_2) ? "Normal with IBM Graphics" : 
-			  (me & DGLACCT_RC_FILE_3) ? "Normal" : "Unspecified";
+			  (me->flags & DGLACCT_RC_FILE_1) ? "Curses Interface" : 
+			  (me->flags & DGLACCT_RC_FILE_2) ? "Normal with IBM Graphics" :
+			  (me->flags & DGLACCT_RC_FILE_3) ? "Normal" : "Unspecified";
 
 		  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$RCFILE", rc_file_name), DGL_BANNER_LINELEN);
 
