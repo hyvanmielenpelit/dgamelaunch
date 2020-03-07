@@ -387,11 +387,9 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 			    idle_alarm_set_enabled(0);
 			    /* launch program */
 				
-				execvp (myconfig[userchoice]->game_path, myconfig[userchoice]->bin_args);
-
-			    /*ttyrec_main (userchoice, me->username,
+			    ttyrec_main (userchoice, me->username,
 					 dgl_format_str(userchoice, me, myconfig[userchoice]->ttyrecdir, NULL),
-					 gen_ttyrec_filename());*/
+					 gen_ttyrec_filename());
 
 			    idle_alarm_set_enabled(1);
 			    played = 1;
@@ -425,7 +423,6 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 
     return 0;
 }
-
 
 
 static int

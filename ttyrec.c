@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-/* 1999-02-22 Arkadiusz Mi¶kiewicz <misiek@misiek.eu.org>
+/* 1999-02-22 Arkadiusz Miï¿½kiewicz <misiek@misiek.eu.org>
  * - added Native Language Support
  */
 
@@ -140,21 +140,22 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
   dgl_parent = getpid();
   child = subchild = input_child = 0;
 
-  if (!ttyrec_path) {
+  if (1 /*!ttyrec_path*/) {
       child = fork();
       if (child < 0) {
-	  perror ("fork");
-	  fail ();
+	      perror ("fork");
+	      fail ();
       }
       if (child == 0) {
-	  execvp (myconfig[game]->game_path, myconfig[game]->bin_args);
+	      execvp (myconfig[game]->game_path, myconfig[game]->bin_args);
       } else {
-	  int status;
-	  (void) wait(&status);
+	      int status;
+	      (void) wait(&status);
       }
       return 0;
   }
 
+  /*
   if (ttyrec_path[strlen(ttyrec_path)-1] == '/')
       snprintf (dirname, 100, "%s%s", ttyrec_path, ttyrec_filename);
   else
@@ -222,6 +223,7 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
   child = 0;
 
   return 0;
+  */
 }
 
 void
