@@ -389,11 +389,16 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 			    signal(SIGTERM, SIG_DFL);
 			    idle_alarm_set_enabled(0);
 			    /* launch program */
-			    ttyrec_main (userchoice, me->username,
+				
+				execvp (myconfig[userchoice]->game_path, myconfig[userchoice]->bin_args);
+
+			    /*ttyrec_main (userchoice, me->username,
 					 dgl_format_str(userchoice, me, myconfig[userchoice]->ttyrecdir, NULL),
-					 gen_ttyrec_filename());
+					 gen_ttyrec_filename());*/
+
 			    idle_alarm_set_enabled(1);
 			    played = 1;
+				
 			    /* lastly, run the generic "do these when a game is left" commands */
 			    signal (SIGHUP, catch_sighup);
 			    signal (SIGINT, catch_sighup);
