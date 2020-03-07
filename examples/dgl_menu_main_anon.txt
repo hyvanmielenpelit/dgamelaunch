@@ -8,10 +8,10 @@
 
  Not logged in.
 
- L) Login
- R) Register new user
- W) Watch games in progress
- Q) Quit
+ l) Login
+ r) Register new user
+ w) Watch games in progress
+ q) Quit
 
 
 

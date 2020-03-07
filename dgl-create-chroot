@@ -146,13 +146,7 @@ cp "$CURDIR/examples/dgl_menu_main_user.txt" .
 cp "$CURDIR/examples/dgl_menu_watchmenu_help.txt" .
 cp "$CURDIR/examples/dgl-banner" .
 cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile.gnh"
-cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile-1.gnh"
-cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile-2.gnh"
-cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile-3.gnh"
 chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner dgl-default-rcfile.gnh
-chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner dgl-default-rcfile-1.gnh
-chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner dgl-default-rcfile-2.gnh
-chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner dgl-default-rcfile-3.gnh
 
 NHSUBDIR="`echo ${NHSUBDIR%/}`"
 NHSUBDIR="`echo ${NHSUBDIR#/}`"

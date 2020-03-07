@@ -8,12 +8,11 @@
 
  Logged in as: $USERNAME
 
- C) Change password
- E) Change email address
- W) Watch games in progress
- B) Base options file menu
- O) Edit options file ($RCFILE)
- P) Play GnollHack 4.0 Beta
- Q) Quit
+ c) Change password
+ e) Change email address
+ w) Watch games in progress
+ o) Edit options
+ p) Play GnollHack 4.0 Beta
+ q) Quit
 
  =>

@@ -528,7 +528,7 @@ loadbanner (char *fname, struct dg_banner *ban)
     }
 
   while (fgets (buf, DGL_BANNER_LINELEN, bannerfile) != NULL)
-  {
+    {
       char bufnew[DGL_BANNER_LINELEN+1];
       int slen;
 
@@ -538,48 +538,29 @@ loadbanner (char *fname, struct dg_banner *ban)
       if ((slen > 0) && (buf[slen-1] == '\n')) buf[slen-1] = '\0';
 
       strncpy(bufnew, buf, DGL_BANNER_LINELEN);
-      if (strstr(bufnew, "$INCLUDE("))
-	  {
-		  char *fn = bufnew + 9;
-		  char *fn_end = strchr(fn, ')');
-		  if (fn_end) 
-		  {
-			  *fn_end = '\0';
-			  if (strcmp(fname, fn)) 
-			  {
-				loadbanner(fn, ban);
-			  }
-		  }
-      }
-	  else 
-	  {
-		  char tmpbufnew[DGL_BANNER_LINELEN+1];
-		  struct dg_banner_var *bv = globalconfig.banner_var_list;
-		  while (bv) {
-			  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, bv->name, banner_var_resolve(bv)), DGL_BANNER_LINELEN);
-			  bv = bv->next;
-		  }
-		  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$VERSION", PACKAGE_STRING), DGL_BANNER_LINELEN);
-
-		  /*
-		  const char* rc_file_name = 
-			  (me->flags & DGLACCT_RC_FILE_1) ? "Curses Interface" : 
-			  (me->flags & DGLACCT_RC_FILE_2) ? "Normal with IBM Graphics" :
-			  (me->flags & DGLACCT_RC_FILE_3) ? "Normal" : "Unspecified";
-
-		  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$RCFILE", rc_file_name), DGL_BANNER_LINELEN);
-		  */
-
-		  if (me && loggedin)
-		  {
-			  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", me->username), DGL_BANNER_LINELEN);
-		  } 
-		  else
-		  {
-			  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", "[Anonymous]"), DGL_BANNER_LINELEN);
-		  }
-
-		  banner_addline(ban, bufnew);
+      if (strstr(bufnew, "$INCLUDE(")) {
+	  char *fn = bufnew + 9;
+	  char *fn_end = strchr(fn, ')');
+	  if (fn_end) {
+	      *fn_end = '\0';
+	      if (strcmp(fname, fn)) {
+		  loadbanner(fn, ban);
+	      }
+	  }
+      } else {
+	  char tmpbufnew[DGL_BANNER_LINELEN+1];
+	  struct dg_banner_var *bv = globalconfig.banner_var_list;
+	  while (bv) {
+	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, bv->name, banner_var_resolve(bv)), DGL_BANNER_LINELEN);
+	      bv = bv->next;
+	  }
+	  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$VERSION", PACKAGE_STRING), DGL_BANNER_LINELEN);
+	  if (me && loggedin) {
+	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", me->username), DGL_BANNER_LINELEN);
+	  } else {
+	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", "[Anonymous]"), DGL_BANNER_LINELEN);
+	  }
+	  banner_addline(ban, bufnew);
       }
 
       memset (buf, 0, DGL_BANNER_LINELEN);
@@ -2648,56 +2629,44 @@ runmenuloop(struct dg_menu *menu)
     ban.len = 0;
 
     loadbanner(menu->banner_fn, &ban);
-    while (1) 
-	{
-		term_resize_check();
-		if (doclear) 
-		{
-			doclear = 0;
-			if (globalconfig.utf8esc) (void) write(1, "\033%G", 3);
-			clear();
-		}
-		drawbanner(&ban);
-	
-		if (menu->cursor_x >= 0 && menu->cursor_y >= 0)
-			mvprintw(menu->cursor_y, menu->cursor_x, "");
-		refresh();
-		userchoice = dgl_getch();
-	
-		if (userchoice == ERR) 
-		{
-			freebanner(&ban);
-			return 1;
-		}
+    while (1) {
+	term_resize_check();
+	if (doclear) {
+	    doclear = 0;
+	    if (globalconfig.utf8esc) (void) write(1, "\033%G", 3);
+	    clear();
+	}
+	drawbanner(&ban);
+	if (menu->cursor_x >= 0 && menu->cursor_y >= 0)
+	    mvprintw(menu->cursor_y, menu->cursor_x, "");
+	refresh();
+	userchoice = dgl_getch();
+	if (userchoice == ERR) {
+	    freebanner(&ban);
+	    return 1;
+	}
+	tmpopt = menu->options;
+	while (tmpopt) {
+	    if (strchr(tmpopt->keys, userchoice)) {
+		dgl_exec_cmdqueue(tmpopt->cmdqueue, selected_game, me);
+		doclear = 1;
+		break;
+	    } else {
+		tmpopt = tmpopt->next;
+	    }
+	}
 
-		tmpopt = menu->options;
-		while (tmpopt)
-		{
-			if (strchr(tmpopt->keys, userchoice)) 
-			{
-				dgl_exec_cmdqueue(tmpopt->cmdqueue, selected_game, me);
-				doclear = 1;
-				break;
-			}
-			else
-			{
-				tmpopt = tmpopt->next;
-			}
-		}
+	if (return_from_submenu) {
+	    freebanner(&ban);
+	    return_from_submenu = 0;
+	    return 0;
+	}
 
-		if (return_from_submenu) 
-		{
-			freebanner(&ban);
-			return_from_submenu = 0;
-			return 0;
-		}
-
-		if (check_retard(0)) 
-		{
-			freebanner(&ban);
-			debug_write("retard");
-			graceful_exit(119);
-		}
+	if (check_retard(0)) {
+	    freebanner(&ban);
+	    debug_write("retard");
+	    graceful_exit(119);
+	}
     }
 }
 
@@ -2984,7 +2953,7 @@ main (int argc, char** argv)
 
   while (1) {
       if (runmenuloop(dgl_find_menu(get_mainmenu_name())))
-		break;
+	  break;
   }
 
   idle_alarm_set_enabled(0);

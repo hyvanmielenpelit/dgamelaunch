@@ -96,12 +96,9 @@ dgl_find_menu(char *menuname)
 {
     struct dg_menulist *tmp = globalconfig.menulist;
 
-    while (tmp) 
-	{
-		if (!strcmp(tmp->menuname, menuname))
-			return tmp->menu;
-		
-		tmp = tmp->next;
+    while (tmp) {
+	if (!strcmp(tmp->menuname, menuname)) return tmp->menu;
+	tmp = tmp->next;
     }
     return NULL;
 }
@@ -338,7 +335,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    /* break; */
 	case DGLCMD_SUBMENU:
 	    if (p1)
-			runmenuloop(dgl_find_menu(p1));
+		runmenuloop(dgl_find_menu(p1));
 	    break;
 	case DGLCMD_RETURN:
 	    return_from_submenu = 1;
