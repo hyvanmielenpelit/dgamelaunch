@@ -140,7 +140,7 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
   dgl_parent = getpid();
   child = subchild = input_child = 0;
 
-  if (1 /*!ttyrec_path*/) {
+  if (!ttyrec_path) {
       child = fork();
       if (child < 0) {
 	      perror ("fork");
@@ -155,7 +155,6 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
       return 0;
   }
 
-  /*
   if (ttyrec_path[strlen(ttyrec_path)-1] == '/')
       snprintf (dirname, 100, "%s%s", ttyrec_path, ttyrec_filename);
   else
@@ -223,7 +222,6 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
   child = 0;
 
   return 0;
-  */
 }
 
 void
