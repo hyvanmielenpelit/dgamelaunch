@@ -1,0 +1,11 @@
+## $SERVERID
+
+The Curses interface default settings differ depending on your SSH client.
+
+Next, select your SSH client:
+
+p) PuTTY on Windows
+s) ssh command in Terminal (Linux, macOS, Windows)
+q) Return
+
+=>

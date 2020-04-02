@@ -340,6 +340,18 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_RETURN:
 	    return_from_submenu = 1;
 	    break;
+	case DGLCMD_RETURNMANY:
+		;
+		int retnum = 1;
+		if(p1) {
+			retnum = atoi(p1);
+			if(retnum <= 0) {
+				debug_write("number of returns is not positive")
+				retnum = 1;
+			}
+		}
+	    return_from_submenu = retnum;
+	    break;
 	case DGLCMD_PLAY_IF_EXIST:
 	    if (!(loggedin && me && p1 && p2)) break;
 	    {

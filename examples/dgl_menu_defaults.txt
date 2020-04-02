@@ -1,7 +1,9 @@
 ## $SERVERID
- 
-n) Set options to normal TTY defaults
-c) Set options to Curses interface defaults
+
+Set options to:
+
+n) Normal TTY defaults
+c) Curses interface defaults
 q) Return
 
 =>

@@ -124,6 +124,7 @@ play_game	{ yylval.i = DGLCMD_PLAYGAME;    return TYPE_DGLCMD1; }
 play_if_exist	{ yylval.i = DGLCMD_PLAY_IF_EXIST;    return TYPE_DGLCMD2; }
 submenu		{ yylval.i = DGLCMD_SUBMENU;     return TYPE_DGLCMD1; }
 return		{ yylval.i = DGLCMD_RETURN;      return TYPE_DGLCMD0; }
+returnmany		{ yylval.i = DGLCMD_RETURNMANY;      return TYPE_DGLCMD1; }
 rawprint	{ yylval.i = DGLCMD_RAWPRINT;    return TYPE_DGLCMD1; }
 DEFINE		{ return TYPE_DEFINE_GAME; }
 

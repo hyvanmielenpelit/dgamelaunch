@@ -2656,9 +2656,9 @@ runmenuloop(struct dg_menu *menu)
 	    }
 	}
 
-	if (return_from_submenu) {
+	if (return_from_submenu > 0) {
 	    freebanner(&ban);
-	    return_from_submenu = 0;
+	    return_from_submenu--;
 	    return 0;
 	}
 
