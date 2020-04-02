@@ -14,6 +14,7 @@
  o) Edit options
  d) Set options to defaults
  p) Play GnollHack 4.0 Beta
+ n) Play GnollHack 4.0 Beta (New Version)
  q) Quit
 
  =>
