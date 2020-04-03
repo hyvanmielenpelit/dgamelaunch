@@ -8,10 +8,12 @@
 
  Logged in as: $USERNAME
 
- s) Select game
+ s) Select a game to play
+ w) Watch games in progress
+
  c) Change password
  e) Change email address
- w) Watch games in progress
+ 
  q) Quit
 
  =>

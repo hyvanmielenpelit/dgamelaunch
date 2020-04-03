@@ -1,9 +1,10 @@
 ## $SERVERID
 
-$ATTR(14)Select Game:$ATTR()
+Select a game to play:
 
-a) GnollHack Beta 4.0.22a
-b) GnollHack Beta 4.0.22b
+a) GnollHack Beta 4.0.22a (31 March 2020)
+b) GnollHack Beta 4.0.22b (3 April 2020)
+
 q) Return
 
 =>

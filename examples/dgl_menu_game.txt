@@ -1,10 +1,11 @@
 ## $SERVERID
 
-$ATTR(14)$GAMENAME Selected$ATTR()
+$GAMENAME
 
-p) Play $GAMENAME
+p) Play game
 d) Set options to defaults
 o) Edit options
+
 q) Return
 
 =>

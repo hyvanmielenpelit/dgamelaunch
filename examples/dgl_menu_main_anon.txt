@@ -11,8 +11,7 @@
  l) Login
  r) Register new user
  w) Watch games in progress
+
  q) Quit
-
-
 
  =>
