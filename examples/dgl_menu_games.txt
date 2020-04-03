@@ -1,0 +1,9 @@
+## $SERVERID
+
+$ATTR(14)Select Game:$ATTR()
+
+a) GnollHack Beta 4.0.22a
+b) GnollHack Beta 4.0.22b
+q) Return
+
+=>

@@ -44,6 +44,7 @@ struct dg_config defconfig = {
 char* config = NULL;
 int silent = 0;
 int loggedin = 0;
+int game_chosen = 0;
 char *chosen_name;
 int num_games = 0;
 
@@ -110,6 +111,7 @@ dgl_find_menu(char *menuname)
  * %r == chroot (string)  (aka "dglroot" config var)
  * %g == game name
  * %s == short game name
+ * %c == chosen game name
  * %t == ttyrec file (full path&name) of the last game played.
  */
 char *
@@ -141,6 +143,7 @@ dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
 		p++;
 		*p = '\0';
 		break;
+
   	    case 'n':
 		if (me) snprintf (p, end + 1 - p, "%s", me->username);
 		else if (plrname) snprintf(p, end + 1 - p, "%s", plrname);
@@ -148,6 +151,18 @@ dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
 		while (*p != '\0')
 		    p++;
 		break;
+
+		case 'c':
+			if (me && game_chosen) {
+				snprintf (p, end + 1 - p, "%s", me->gamename);
+			}
+			else {
+				return NULL;
+			}
+			while (*p != '\0')
+				p++;
+			break;
+
   	    case 'g':
 		if (game >= 0 && game < num_games && myconfig[game]) snprintf (p, end + 1 - p, "%s", myconfig[game]->game_name);
 		else return NULL;
@@ -313,6 +328,17 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_SETENV:
 	    if (p1 && p2) mysetenv(p1, p2, 1);
 	    break;
+	case DGLCMD_GAMENAME:
+	    if (p1) 
+		{
+			if(game_chosen) {
+				free(me->gamename);
+			}
+			me->gamename = malloc(strlen(p1) + 1);
+			strcpy(me->gamename, p1);
+			game_chosen = 1;
+		}
+	    break;
 	case DGLCMD_CHPASSWD:
 	    if (loggedin) changepw(1);
 	    break;
@@ -363,69 +389,77 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    }
 	    /* else fall through to playgame */
 	case DGLCMD_PLAYGAME:
-	    if (loggedin && me && p1 && !played) {
-		int userchoice, i;
-		char *tmpstr;
-		for (userchoice = 0; userchoice < num_games; userchoice++) {
-		    if (!strcmp(myconfig[userchoice]->game_id, p1) || !strcmp(myconfig[userchoice]->game_name, p1) || !strcmp(myconfig[userchoice]->shortname, p1)) {
-			if (purge_stale_locks(userchoice)) {
-			    if (myconfig[userchoice]->rcfile) {
-				if (access (dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt, NULL), R_OK) == -1)
-				    write_canned_rcfile (userchoice, dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt, NULL));
-			    }
-
-			    setproctitle("%s [playing %s]", me->username, myconfig[userchoice]->shortname);
-
-			    clear();
-			    refresh();
-			    endwin ();
-
-			    /* first run the generic "do these when a game is started" commands */
-			    dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMESTART], userchoice, me);
-			    /* then run the game-specific commands */
-			    dgl_exec_cmdqueue(myconfig[userchoice]->cmdqueue, userchoice, me);
-
-			    /* fix the variables in the arguments */
-			    for (i = 0; i < myconfig[userchoice]->num_args; i++) {
-				tmpstr = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->bin_args[i], NULL));
-				free(myconfig[userchoice]->bin_args[i]);
-				myconfig[userchoice]->bin_args[i] = tmpstr;
-			    }
-
-			    signal(SIGWINCH, SIG_DFL);
-			    signal(SIGINT, SIG_DFL);
-			    signal(SIGQUIT, SIG_DFL);
-			    signal(SIGTERM, SIG_DFL);
-			    idle_alarm_set_enabled(0);
-			    /* launch program */
-				
-			    ttyrec_main (userchoice, me->username,
-					 dgl_format_str(userchoice, me, myconfig[userchoice]->ttyrecdir, NULL),
-					 gen_ttyrec_filename());
-
-			    idle_alarm_set_enabled(1);
-			    played = 1;
-				
-			    /* lastly, run the generic "do these when a game is left" commands */
-			    signal (SIGHUP, catch_sighup);
-			    signal (SIGINT, catch_sighup);
-			    signal (SIGQUIT, catch_sighup);
-			    signal (SIGTERM, catch_sighup);
-			    signal(SIGWINCH, sigwinch_func);
-
-			    dgl_exec_cmdqueue(myconfig[userchoice]->postcmdqueue, userchoice, me);
-
-			    dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMEEND], userchoice, me);
-
-			    setproctitle ("%s", me->username);
-			    initcurses ();
-			    check_retard(1); /* reset retard counter */
+		if (loggedin && me && p1 && !played)
+		{
+			if(strcmp("$GAMENAME", p1) || strcmp("$gamename", p1) || strcmp("%c", p1)) {
+					p1 = me->gamename;
 			}
-			break;
-		    }
+			int userchoice, i;
+			char *tmpstr;
+			for (userchoice = 0; userchoice < num_games; userchoice++) {
+				if (!strcmp(myconfig[userchoice]->game_id, p1) || !strcmp(myconfig[userchoice]->game_name, p1) || !strcmp(myconfig[userchoice]->shortname, p1))
+				{
+					if (purge_stale_locks(userchoice))
+					{
+						if (myconfig[userchoice]->rcfile)
+						{
+							if (access(dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt, NULL), R_OK) == -1)
+								write_canned_rcfile(userchoice, dgl_format_str(userchoice, me, myconfig[userchoice]->rc_fmt, NULL));
+						}
+
+						setproctitle("%s [playing %s]", me->username, myconfig[userchoice]->shortname);
+
+						clear();
+						refresh();
+						endwin();
+
+						/* first run the generic "do these when a game is started" commands */
+						dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMESTART], userchoice, me);
+						/* then run the game-specific commands */
+						dgl_exec_cmdqueue(myconfig[userchoice]->cmdqueue, userchoice, me);
+
+						/* fix the variables in the arguments */
+						for (i = 0; i < myconfig[userchoice]->num_args; i++)
+						{
+							tmpstr = strdup(dgl_format_str(userchoice, me, myconfig[userchoice]->bin_args[i], NULL));
+							free(myconfig[userchoice]->bin_args[i]);
+							myconfig[userchoice]->bin_args[i] = tmpstr;
+						}
+
+						signal(SIGWINCH, SIG_DFL);
+						signal(SIGINT, SIG_DFL);
+						signal(SIGQUIT, SIG_DFL);
+						signal(SIGTERM, SIG_DFL);
+						idle_alarm_set_enabled(0);
+						/* launch program */
+
+						ttyrec_main(userchoice, me->username,
+									dgl_format_str(userchoice, me, myconfig[userchoice]->ttyrecdir, NULL),
+									gen_ttyrec_filename());
+
+						idle_alarm_set_enabled(1);
+						played = 1;
+
+						/* lastly, run the generic "do these when a game is left" commands */
+						signal(SIGHUP, catch_sighup);
+						signal(SIGINT, catch_sighup);
+						signal(SIGQUIT, catch_sighup);
+						signal(SIGTERM, catch_sighup);
+						signal(SIGWINCH, sigwinch_func);
+
+						dgl_exec_cmdqueue(myconfig[userchoice]->postcmdqueue, userchoice, me);
+
+						dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_GAMEEND], userchoice, me);
+
+						setproctitle("%s", me->username);
+						initcurses();
+						check_retard(1); /* reset retard counter */
+					}
+					break;
+				}
+			}
 		}
-	    }
-	    break;
+		break;
 	}
 	tmp = tmp->next;
     }

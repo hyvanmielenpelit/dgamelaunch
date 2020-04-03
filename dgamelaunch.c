@@ -560,7 +560,20 @@ loadbanner (char *fname, struct dg_banner *ban)
 	  } else {
 	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", "[Anonymous]"), DGL_BANNER_LINELEN);
 	  }
-	  banner_addline(ban, bufnew);
+
+    if (me && game_chosen)
+    {
+      int userchoice;
+      for (userchoice = 0; userchoice < num_games; userchoice++)
+      {
+        if (!strcmp(myconfig[userchoice]->game_id, me->gamename) || !strcmp(myconfig[userchoice]->shortname, me->gamename))
+        {
+            strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$GAMENAME", myconfig[userchoice]->game_name), DGL_BANNER_LINELEN);
+        }
+      }
+    }
+
+    banner_addline(ban, bufnew);
       }
 
       memset (buf, 0, DGL_BANNER_LINELEN);

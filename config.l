@@ -126,6 +126,7 @@ submenu		{ yylval.i = DGLCMD_SUBMENU;     return TYPE_DGLCMD1; }
 return		{ yylval.i = DGLCMD_RETURN;      return TYPE_DGLCMD0; }
 returnmany		{ yylval.i = DGLCMD_RETURNMANY;      return TYPE_DGLCMD1; }
 rawprint	{ yylval.i = DGLCMD_RAWPRINT;    return TYPE_DGLCMD1; }
+gamename		{ yylval.i = DGLCMD_GAMENAME; return TYPE_DGLCMD1; }
 DEFINE		{ return TYPE_DEFINE_GAME; }
 
 

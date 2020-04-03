@@ -1,5 +1,7 @@
 ## $SERVERID
 
+$ATTR(14)$GAMENAME Selected$ATTR()
+
 The Curses interface default settings differ depending on your SSH client.
 
 Next, select your SSH client:

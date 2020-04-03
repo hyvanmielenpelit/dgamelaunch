@@ -1,6 +1,8 @@
 ## $SERVERID
 
-Set options to:
+$ATTR(14)$GAMENAME Selected$ATTR()
+
+Set $GAMENAME options to:
 
 n) Normal TTY defaults
 c) Curses interface defaults
