@@ -391,8 +391,12 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_PLAYGAME:
 		if (loggedin && me && p1 && !played)
 		{
-			if(strcmp("$GAMENAME", p1) || strcmp("$gamename", p1) || strcmp("%c", p1)) {
+			char * old_p1;
+			int p1_stored = 0;
+			if(game_chosen && (strcmp("$GAMENAME", p1) || strcmp("$gamename", p1) || strcmp("%c", p1))) {
+					old_p1 = p1;
 					p1 = me->gamename;
+					p1_stored = 1;
 			}
 			int userchoice, i;
 			char *tmpstr;
@@ -458,7 +462,12 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 					break;
 				}
 			}
+
+			if(p1_stored) {
+				p1 = old_p1;
+			}
 		}
+
 		break;
 	}
 	tmp = tmp->next;
