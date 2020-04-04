@@ -675,12 +675,18 @@ void drawbanner(struct dg_banner *ban)
         }
       }
 
-      if(mode > 1 && start > tmpbuf2)
+      if(mode >= 1 && start > tmpbuf2)
       {
         //Print start of string
-        length = start - tmpbuf2;
-        mvaddstr(1 + i - removedlines, x, tmpbuf2);
-        x += length;
+        int start_length = start - tmpbuf2;
+        char *start_part = (char *)malloc(start_length + 1);
+        memcpy(start_part, tmpbuf2, start_length);
+        start_part[start_length] = '\0';
+
+        mvaddstr(1 + i - removedlines, x, start_part);
+        x += start_length;
+
+        free(start_part);
       }
 
       if (mode == 2)
@@ -728,7 +734,7 @@ void drawbanner(struct dg_banner *ban)
         char *nxttmpch;
         oattr = attr;
         attr = A_NORMAL;
-        *tmpch = *tmpch2 = '\0';
+        *tmpch2 = '\0'; //This will replace ) with \0 to end line reading
         tmpch += 6;
         nxttmpch = tmpch;
         do
@@ -786,12 +792,11 @@ void drawbanner(struct dg_banner *ban)
           tmpch = nxttmpch;
         } while (spl);
 
-        mvaddstr(1 + i - removedlines, x, tmpbuf2);
         if (oattr)
           attroff(oattr);
         if (attr)
           attron(attr);
-        x += strlen(tmpbuf2);
+
         tmpch2++;
         tmpbuf2 = tmpch2;
       }
