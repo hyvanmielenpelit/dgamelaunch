@@ -45,6 +45,7 @@ char* config = NULL;
 int silent = 0;
 int loggedin = 0;
 int game_chosen = 0;
+char *chosengamename = NULL;
 char *chosen_name;
 int num_games = 0;
 
@@ -154,7 +155,7 @@ dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
 
 		case 'c':
 			if (me && game_chosen) {
-				snprintf (p, end + 1 - p, "%s", me->gamename);
+				snprintf (p, end + 1 - p, "%s", chosengamename);
 			}
 			else {
 				return NULL;
@@ -232,6 +233,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
     char *p1;
     char *p2;
     int played = 0;
+	int skip_remaining = 0;
 
     if (!queue) return 1;
 
@@ -242,7 +244,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 
     return_from_submenu = 0;
 
-    while (tmp && !return_from_submenu) {
+    while (tmp && !return_from_submenu && !skip_remaining) {
 	if (tmp->param1) strcpy(p1, dgl_format_str(game, me, tmp->param1, NULL));
 	if (tmp->param2) strcpy(p2, dgl_format_str(game, me, tmp->param2, NULL));
 
@@ -332,10 +334,10 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    if (p1) 
 		{
 			if(game_chosen) {
-				free(me->gamename);
+				free(chosengamename);
 			}
-			me->gamename = malloc(strlen(p1) + 1);
-			strcpy(me->gamename, p1);
+			chosengamename = malloc(strlen(p1) + 1);
+			strcpy(chosengamename, p1);
 			game_chosen = 1;
 		}
 	    break;
@@ -366,6 +368,11 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	case DGLCMD_RETURN:
 	    return_from_submenu = 1;
 	    break;
+	case DGLCMD_SKIPIFGAME:
+		if(p1 && chosengamename && strcmp(p1, chosengamename) == 0) {
+	    	skip_remaining = 1;
+		}
+	    break;
 	case DGLCMD_RETURNMANY:
 		;
 		int retnum = 1;
@@ -395,7 +402,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 			int p1_stored = 0;
 			if(game_chosen && (strcmp("$GAMENAME", p1) || strcmp("$gamename", p1) || strcmp("%c", p1))) {
 					old_p1 = p1;
-					p1 = me->gamename;
+					p1 = chosengamename;
 					p1_stored = 1;
 			}
 			int userchoice, i;

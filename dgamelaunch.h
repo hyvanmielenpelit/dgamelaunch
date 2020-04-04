@@ -76,7 +76,8 @@ typedef enum
     DGLCMD_SUBMENU,	/* submenu "foo" */
     DGLCMD_RETURN,	/* return */
     DGLCMD_RETURNMANY,	/* returnmany "2" */
-    DGLCMD_GAMENAME /* gamename "gnollhack" */
+    DGLCMD_GAMENAME, /* gamename "gnollhack" */
+    DGLCMD_SKIPIFGAME /* skipifgame */
 } dglcmd_actions;
 
 typedef enum
@@ -134,7 +135,6 @@ struct dg_user
   char *env;
   char *password;
   int flags;			/* dgl_acct_flag bitmask */
-  char *gamename;
 };
 
 struct dg_banner
@@ -267,6 +267,7 @@ extern struct dg_config **myconfig;
 extern char *chosen_name;
 extern int loggedin;
 extern int game_chosen;
+extern char* chosengamename;
 extern int silent;
 extern int set_max;
 

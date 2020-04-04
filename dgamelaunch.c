@@ -566,7 +566,7 @@ loadbanner (char *fname, struct dg_banner *ban)
       int userchoice;
       for (userchoice = 0; userchoice < num_games; userchoice++)
       {
-        if (!strcmp(myconfig[userchoice]->game_id, me->gamename) || !strcmp(myconfig[userchoice]->shortname, me->gamename))
+        if (!strcmp(myconfig[userchoice]->game_id, chosengamename) || !strcmp(myconfig[userchoice]->shortname, chosengamename))
         {
             strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$GAMENAME", myconfig[userchoice]->game_name), DGL_BANNER_LINELEN);
         }
@@ -585,74 +585,226 @@ loadbanner (char *fname, struct dg_banner *ban)
   fclose (bannerfile);
 }
 
-void
-drawbanner (struct dg_banner *ban)
+void drawbanner(struct dg_banner *ban)
 {
   unsigned int i;
   char *tmpch, *tmpch2, *splch;
   int attr = 0, oattr = 0;
+  int removedlines = 0;
 
-  if (!ban) return;
+  if (!ban)
+    return;
 
-  for (i = 0; i < ban->len; i++) {
-      char *tmpbuf = strdup(ban->lines[i]);
-      char *tmpbuf2 = tmpbuf;
-      int ok = 0;
-      int x = 1;
-      do {
-	  ok = 0;
-	  if ((tmpch = strstr(tmpbuf2, "$ATTR("))) {
-	      if ((tmpch2 = strstr(tmpch, ")"))) {
-		  int spl = 0;
-		  char *nxttmpch;
-		  ok = 1;
-		  oattr = attr;
-		  attr = A_NORMAL;
-		  *tmpch = *tmpch2 = '\0';
-		  tmpch += 6;
-		  nxttmpch = tmpch;
-		  do {
-		      spl = 0;
-		      splch = strchr(tmpch, ';');
-		      if (splch && *splch) {
-			  spl = 1;
-			  nxttmpch = splch;
-			  *nxttmpch = '\0';
-			  nxttmpch++;
-		      }
-		      if (tmpch && *tmpch) {
-			  switch (*tmpch) {
-			  default: break;
-			  case '0': case '1': case '2': case '3': case '4':
-			  case '5': case '6': case '7': case '8': case '9':
-			      {
-				  int num = atoi(tmpch);
-				  if (num >= 0 && num <= 15)
-				      attr |= color_remap[num];
-			      }
-			      break;
-			  case 'b': attr |= A_BOLD; break;
-			  case 's': attr |= A_STANDOUT; break;
-			  case 'u': attr |= A_UNDERLINE; break;
-			  case 'r': attr |= A_REVERSE; break;
-			  case 'd': attr |= A_DIM; break;
-			  }
-		      } else attr = A_NORMAL;
-		      tmpch = nxttmpch;
-		  } while (spl);
+  for (i = 0; i < ban->len; i++)
+  {
+    char *tmpbuf = strdup(ban->lines[i]);
+    char *tmpbuf2 = tmpbuf;
+    int x = 1;
 
-		  mvaddstr(1 + i, x, tmpbuf2);
-		  if (oattr) attroff(oattr);
-		  if (attr) attron(attr);
-		  x += strlen(tmpbuf2);
-		  tmpch2++;
-		  tmpbuf2 = tmpch2;
-	      } else
-		  mvaddstr (1 + i, x, tmpbuf2);
-	  } else
-	      mvaddstr (1 + i, x, tmpbuf2);
-      } while (ok);
-      free(tmpbuf);
+    if(strncmp(tmpbuf2, "$RMLINEIFGAME(", strlen("$RMLINEIFGAME(")) == 0)
+    {
+      char *start = tmpbuf2 + strlen("$RMLINEIFGAME(");
+      char *end = strstr(start, ")");;
+
+      if (start && end)
+      {
+        int length = end - start;
+        char *gamename = (char *)malloc(length + 1);
+        memcpy(gamename, start, length);
+        gamename[length] = '\0';
+
+        if(strcmp(gamename, chosengamename) == 0)
+        {
+          //Skip line
+          removedlines++;
+          free(gamename);
+          continue;
+        }
+        else 
+        {
+          free(gamename);
+          end++;
+          tmpbuf2 = end; 
+        }
+      }
+    }
+
+    int mode = -1;
+
+    do
+    {
+      char* defgamename = strstr(tmpbuf2, "$DEFGAMENAME(");
+      char* dattr = strstr(tmpbuf2, "$ATTR(");
+      char* end = NULL;
+      char* start = NULL;
+      int length = 0;
+      if(defgamename == NULL && dattr == NULL)
+      {
+        if(strlen(tmpbuf2) > 0)
+        {
+          mode = 0;
+        }
+        else 
+        {
+          //end
+          mode = -1;
+        }
+      }
+      else if(defgamename == NULL)
+      {
+        mode = 1; //attr
+        start = dattr;
+      }
+      else if(dattr == NULL)
+      {
+        mode = 2; //defgamename
+        start = defgamename;
+      }
+      else
+      {
+        //Both found
+        if(dattr < defgamename)
+        {
+          mode = 1;
+          start = dattr;
+        }
+        else
+        {
+          mode = 2;
+          start = defgamename;
+        }
+      }
+
+      if(mode > 1 && start > tmpbuf2)
+      {
+        //Print start of string
+        length = start - tmpbuf2;
+        mvaddstr(1 + i - removedlines, x, tmpbuf2);
+        x += length;
+      }
+
+      if (mode == 2)
+      {        
+        start += strlen("$DEFGAMENAME(");
+        end = strstr(start, ")");
+        if(end == NULL)
+        {
+          mvaddstr(1 + i - removedlines, x, tmpbuf2);
+          continue;
+        }
+
+        length = end - start;
+        char *gamename = (char *)malloc(length + 1);
+        memcpy(gamename, start, length);
+        gamename[length] = '\0';
+
+        int userchoice;
+        for (userchoice = 0; userchoice < num_games; userchoice++)
+        {
+          if (!strcmp(myconfig[userchoice]->game_id, gamename) || !strcmp(myconfig[userchoice]->shortname, gamename))
+          {
+            mvaddstr(1 + i - removedlines, x, myconfig[userchoice]->game_name);
+            length = strlen(myconfig[userchoice]->game_name);
+            x += length;
+          }
+        }
+
+        free(gamename);
+
+        end++;
+        tmpbuf2 = end;
+      }
+      else if (mode == 1)
+      {
+        end = strstr(dattr, ")");
+        if(end == NULL)
+        {
+          mvaddstr(1 + i - removedlines, x, tmpbuf2);
+          continue;
+        }
+        tmpch = dattr;
+        tmpch2 = end;
+        int spl = 0;
+        char *nxttmpch;
+        oattr = attr;
+        attr = A_NORMAL;
+        *tmpch = *tmpch2 = '\0';
+        tmpch += 6;
+        nxttmpch = tmpch;
+        do
+        {
+          spl = 0;
+          splch = strchr(tmpch, ';');
+          if (splch && *splch)
+          {
+            spl = 1;
+            nxttmpch = splch;
+            *nxttmpch = '\0';
+            nxttmpch++;
+          }
+          if (tmpch && *tmpch)
+          {
+            switch (*tmpch)
+            {
+            default:
+              break;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+            {
+              int num = atoi(tmpch);
+              if (num >= 0 && num <= 15)
+                attr |= color_remap[num];
+            }
+            break;
+            case 'b':
+              attr |= A_BOLD;
+              break;
+            case 's':
+              attr |= A_STANDOUT;
+              break;
+            case 'u':
+              attr |= A_UNDERLINE;
+              break;
+            case 'r':
+              attr |= A_REVERSE;
+              break;
+            case 'd':
+              attr |= A_DIM;
+              break;
+            }
+          }
+          else
+            attr = A_NORMAL;
+          tmpch = nxttmpch;
+        } while (spl);
+
+        mvaddstr(1 + i - removedlines, x, tmpbuf2);
+        if (oattr)
+          attroff(oattr);
+        if (attr)
+          attron(attr);
+        x += strlen(tmpbuf2);
+        tmpch2++;
+        tmpbuf2 = tmpch2;
+      }
+      else if (mode == 0)
+      {
+        mvaddstr(1 + i - removedlines, x, tmpbuf2);
+        length = strlen(tmpbuf2);
+        tmpbuf2 += length;
+        x += length;
+      }
+    } while (mode >= 0);
+
+    free(tmpbuf);
   }
 }
 
@@ -2658,6 +2810,7 @@ runmenuloop(struct dg_menu *menu)
 	    freebanner(&ban);
 	    return 1;
 	}
+
 	tmpopt = menu->options;
 	while (tmpopt) {
 	    if (strchr(tmpopt->keys, userchoice)) {
