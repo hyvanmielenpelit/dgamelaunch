@@ -266,9 +266,9 @@ gen_ttyrec_filename ()
   /* append time to filename */
   time (&rawtime);
   ptm = gmtime (&rawtime);
-  snprintf (ttyrec_filename, 100, "%04i-%02i-%02i.%02i:%02i:%02i.ttyrec",
+  snprintf (ttyrec_filename, 100, "%04i-%02i-%02i.%02i:%02i:%02i_%s.ttyrec",
             ptm->tm_year + 1900, ptm->tm_mon + 1, ptm->tm_mday,
-            ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+            ptm->tm_hour, ptm->tm_min, ptm->tm_sec, chosengamename);
   return ttyrec_filename;
 }
 
