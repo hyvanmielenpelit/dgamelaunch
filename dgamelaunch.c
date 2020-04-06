@@ -113,13 +113,13 @@ struct dg_banner banner;
 
 static struct dg_watchcols default_watchcols[] = {
     {SORTMODE_NONE, SORTMODE_NONE,        1, "", "%s)"},
-    {SORTMODE_USERNAME, SORTMODE_USERNAME,    4, "Username", "%-15s"},
-    {SORTMODE_GAMENUM, SORTMODE_GAMENUM,    21, "Game", "%-5s"},
-    {SORTMODE_WINDOWSIZE, SORTMODE_WINDOWSIZE, 28, " Size", "%s"},
-    {SORTMODE_STARTTIME, SORTMODE_STARTTIME,  37, "Start date & time", "%s"},
-    {SORTMODE_IDLETIME, SORTMODE_IDLETIME,   58, "Idle time", "%-10s"},
+    {SORTMODE_USERNAME, SORTMODE_USERNAME,    4, "Username", "%-10s"},
+    {SORTMODE_GAMENUM, SORTMODE_GAMENUM,    16, "Game/Version", "%-12s"},
+    {SORTMODE_WINDOWSIZE, SORTMODE_WINDOWSIZE, 30, "Size", "%s"},
+    {SORTMODE_STARTTIME, SORTMODE_STARTTIME,  39, "Start date & time", "%s"},
+    {SORTMODE_IDLETIME, SORTMODE_IDLETIME,   60, "Idle time", "%-10s"},
 #ifdef USE_SHMEM
-    {SORTMODE_WATCHERS, SORTMODE_WATCHERS,   70, "Watchers", "%s"},
+    {SORTMODE_WATCHERS, SORTMODE_WATCHERS,   72, "Watchers", "%s"},
 #endif
 };
 
@@ -1093,82 +1093,82 @@ get_timediff(time_t ctime, long seconds)
     return data;
 }
 
-static
-void
+static void
 game_get_column_data(struct dg_game *game,
                      char selectorchar,
                      time_t ctime, struct dg_shm_game *shm_dg_game,
                      char *data, int bufsz, int *hilite,
                      dg_sortmode which_data)
 {
-    *data = 0;
+  *data = 0;
 
-    switch (which_data) {
-    default: break;
-    case SORTMODE_NONE:
-        data[0] = selectorchar; data[1] = '\0';
-        break;
+  switch (which_data)
+  {
+  default:
+    break;
+  case SORTMODE_NONE:
+    data[0] = selectorchar;
+    data[1] = '\0';
+    break;
 
-    case SORTMODE_USERNAME:
-        snprintf(data, bufsz, "%s", game->name);
-        break;
+  case SORTMODE_USERNAME:
+    snprintf(data, bufsz, "%s", game->name);
+    break;
 
-    case SORTMODE_GAMENUM:
-        snprintf(data, bufsz, "%s",
-                 myconfig[game->gamenum]->shortname);
-        break;
+  case SORTMODE_GAMENUM:
+    snprintf(data, bufsz, "%s",
+             myconfig[game->gamenum]->version);
+    break;
 
-    case SORTMODE_WINDOWSIZE:
-        snprintf(data, bufsz, "%3dx%3d", game->ws_col, game->ws_row);
-	if (showplayers)
-		snprintf(data, bufsz, "%dx%d", game->ws_col, game->ws_row);
-	else
-		snprintf(data, bufsz, "%3dx%3d", game->ws_col, game->ws_row);
-        if ((game->ws_col > COLS || game->ws_row > LINES))
-            *hilite = CLR_RED;
-        break;
+  case SORTMODE_WINDOWSIZE:
+    snprintf(data, bufsz, "%dx%d", game->ws_col, game->ws_row);
+    // if (showplayers)
+    //   snprintf(data, bufsz, "%dx%d", game->ws_col, game->ws_row);
+    // else
+    //   snprintf(data, bufsz, "%3dx%3d", game->ws_col, game->ws_row);
+    if ((game->ws_col > COLS || game->ws_row > LINES))
+      *hilite = CLR_RED;
+    break;
 
-    case SORTMODE_STARTTIME:
-        snprintf(data, bufsz, "%s %s", game->date,
-                 game->time);
-        break;
+  case SORTMODE_STARTTIME:
+    snprintf(data, bufsz, "%s %s", game->date,
+             game->time);
+    break;
 
-    case SORTMODE_DURATION:
-	{
-	    /* TODO: populate_games() should put st_ctime into game struct */
-	    struct tm timetm;
-	    char tmptimebuf[32];
-	    snprintf(tmptimebuf, 30, "%s %s", game->date, game->time);
-	    tmptimebuf[31] = '\0';
-	    strptime(tmptimebuf, "%Y-%m-%d %H:%M:%S", &timetm);
-	    snprintf(data, 10, "%s", get_timediff(ctime, mktime(&timetm)));
-	}
-	break;
+  case SORTMODE_DURATION:
+  {
+    /* TODO: populate_games() should put st_ctime into game struct */
+    struct tm timetm;
+    char tmptimebuf[32];
+    snprintf(tmptimebuf, 30, "%s %s", game->date, game->time);
+    tmptimebuf[31] = '\0';
+    strptime(tmptimebuf, "%Y-%m-%d %H:%M:%S", &timetm);
+    snprintf(data, 10, "%s", get_timediff(ctime, mktime(&timetm)));
+  }
+  break;
 
-    case SORTMODE_IDLETIME:
-	snprintf(data, 10, "%s", get_timediff(ctime, game->idle_time));
-        break;
+  case SORTMODE_IDLETIME:
+    snprintf(data, 10, "%s", get_timediff(ctime, game->idle_time));
+    break;
 
-    case SORTMODE_EXTRA_INFO:
-        if (game->extra_info)
-            strlcpy(data, game->extra_info, bufsz);
-        break;
+  case SORTMODE_EXTRA_INFO:
+    if (game->extra_info)
+      strlcpy(data, game->extra_info, bufsz);
+    break;
 
 #ifdef USE_SHMEM
-    case SORTMODE_WATCHERS:
-        snprintf(data, bufsz, "%li",
-                 (game->is_in_shm ?
-                  shm_dg_game[game->shm_idx].nwatchers : -1));
-        break;
+  case SORTMODE_WATCHERS:
+    snprintf(data, bufsz, "%li",
+             (game->is_in_shm ? shm_dg_game[game->shm_idx].nwatchers : -1));
+    break;
 #endif
-    }
-    data[bufsz - 1] = '\0';
+  }
+  data[bufsz - 1] = '\0';
 }
 
-void
-inprogressmenu (int gameid)
+void inprogressmenu(int gameid)
 {
-    const char *selectorchars = "abcdefghijklmnoprstuvwxyzABCDEFGHIJKLMNOPRSTUVWXYZ";
+  const char *selectorchars = "abcdefghijklmnoprstuvwxyzABCDEFGHIJKLMNOPRSTUVWXYZ";
   int i, menuchoice, len = 20, offset = 0;
   static dg_sortmode sortmode = NUM_SORTMODES;
   struct dg_game **games = NULL;
@@ -1203,289 +1203,351 @@ inprogressmenu (int gameid)
   struct dg_watchcols **curr_watchcol;
 
   if (sortmode == NUM_SORTMODES)
-      sortmode = globalconfig.sortmode;
+    sortmode = globalconfig.sortmode;
 
   abs_max_height = strlen(selectorchars);
 
   shm_init(&shm_dg_data, &shm_dg_game);
 
-  games = populate_games (gameid, &len, NULL); /* FIXME: should be 'me' instead of 'NULL' */
+  games = populate_games(gameid, &len, me);
   shm_update(shm_dg_data, games, len);
-  games = sort_games (games, len, sortmode);
+  games = sort_games(games, len, sortmode);
 
   while (1)
+  {
+    term_resize_check();
+    max_height = dgl_local_LINES - (top_banner_hei + btm_banner_hei) - 1;
+    if (max_height < 2)
     {
-	term_resize_check();
-	max_height = dgl_local_LINES - (top_banner_hei + btm_banner_hei) - 1;
-	if (max_height < 2) {
-	    free_populated_games(games, len);
-	    return;
-	}
-	if (max_height > abs_max_height) max_height = abs_max_height;
+      free_populated_games(games, len);
+      return;
+    }
+    if (max_height > abs_max_height)
+      max_height = abs_max_height;
 
-      if (len == 0)
+    if (len == 0)
+      offset = 0;
+
+    erase();
+    drawbanner(&banner);
+
+    if (len > 0)
+    {
+      while (offset >= len)
+      {
+        offset -= max_height;
+      }
+      if (offset < 0)
         offset = 0;
+      mvaddstr(3, 1, "The following games are in progress:");
 
-      erase ();
-      drawbanner (&banner);
-
-      if (len > 0) {
-	  while (offset >= len) { offset -= max_height; }
-	  if (offset < 0) offset = 0;
-	  mvaddstr (3, 1, "The following games are in progress:");
-
-	  for (curr_watchcol = watchcols; *curr_watchcol; ++curr_watchcol) {
-              struct dg_watchcols *wcol = *curr_watchcol;
-	      char *col = wcol->colname;
-	      int x = wcol->x;
-	      while (*col == ' ') { x++; col++; }
-	      if (sortmode == wcol->sortmode) attron(title_attr);
-	      mvprintw(top_banner_hei, x, col);
-	      if (sortmode == wcol->sortmode) attroff(title_attr);
-	  }
-      }
-
-      signals_block();
-      shm_sem_wait(shm_dg_data);
-
-      (void) time(&ctime);
-
-      for (i = 0; i < max_height; i++)
+      for (curr_watchcol = watchcols; *curr_watchcol; ++curr_watchcol)
+      {
+        struct dg_watchcols *wcol = *curr_watchcol;
+        char *col = wcol->colname;
+        int x = wcol->x;
+        while (*col == ' ')
         {
-          if (i + offset >= len)
-            break;
-
-	  if (i + offset == selected) attron(selected_attr);
-
-	  for (curr_watchcol = watchcols; *curr_watchcol; ++curr_watchcol) {
-              struct dg_watchcols *col = *curr_watchcol;
-	      char tmpbuf[80];
-	      int hilite = 0;
-              game_get_column_data(games[i + offset],
-                                   selectorchars[i],
-                                   ctime, shm_dg_game,
-                                   tmpbuf, sizeof tmpbuf, &hilite,
-                                   (dg_sortmode)col->dat);
-	      if (hilite) attron(hilite);
-	      mvprintw(top_banner_hei + 1 + i, col->x, col->fmt, tmpbuf);
-	      if (hilite) {
-		  attron(CLR_NORMAL);
-		  hilite = 0;
-	      }
-	  }
-
-	  if (i + offset == selected) attroff(selected_attr);
-
+          x++;
+          col++;
         }
-
-      shm_sem_post(shm_dg_data);
-      signals_release();
-
-      btm = dgl_local_LINES-btm_banner_hei-top_banner_hei;
-      if (len <= max_height)
-	  btm = i+1;
-
-      if (len > 0) {
-	  mvprintw ((btm+top_banner_hei), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
-	  mvaddstr ((btm+2+top_banner_hei), 1, "Watch which game? ('?' for help) => ");
-      } else {
-	  mvprintw(top_banner_hei,4,"Sorry, no games available for viewing.");
-	  mvaddstr((btm+2+top_banner_hei), 1, "Press 'q' to return, or '?' for help => ");
-      }
-
-      refresh ();
-
-      switch ((menuchoice = dgl_getch ()))
-        {
-	case KEY_DOWN:
-	    selected++;
-	    if (selected >= len) selected = 0;
-	    while (selected < offset) offset -= max_height;
-	    while (selected >= offset+max_height) offset += max_height;
-	    break;
-	case KEY_UP:
-	    if (selected != -1) {
-		if (selected == 0) selected = len;
-		selected--;
-	    } else selected = len-1;
-	    while (selected < offset) offset -= max_height;
-	    while (selected >= offset+max_height) offset += max_height;
-	    break;
-	case '*':
-	    if (len > 0) {
-		int cnt = 20;
-		(void) time(&ctime);
-		do {
-		    idx = random() % len;
-		} while ((--cnt > 0) ||
-			 !((games[idx]->ws_col <= COLS) &&
-			  (games[idx]->ws_row <= LINES) &&
-			  ((ctime - games[idx]->idle_time) < 15)));
-		selected = idx;
-		goto watchgame;
-	    }
-	    break;
-	case '?':
-	    (void) runmenuloop(dgl_find_menu("watchmenu_help"));
-	    break;
-       case '/':
-           {
-               int match = -1;
-	       int firstmatch = -1;
-	       int nmatches = 0;
-               char findname[DGL_PLAYERNAMELEN+1];
-	       if (len <= 0) break;
-               findname[0] = '\0';
-	       mvprintw ((btm+2+top_banner_hei), 1, "Watch which player? =>                 "); /* stupid... */
-	       mvaddstr ((btm+2+top_banner_hei), 1, "Watch which player? => ");
-               if ((mygetnstr(findname, DGL_PLAYERNAMELEN, 1) == OK) && (strlen(findname) > 1)) {
-		   int mlen = strlen(findname);
-                   for (i = 0; i < len; i++)
-                       if (!strncasecmp(games[i]->name, findname, mlen)) {
-			   if (firstmatch == -1) firstmatch = i;
-                           match = i;
-			   nmatches++;
-                       }
-		   if (nmatches > 1)
-		       match = firstmatch;
-                   if (match > -1) {
-		       idx = match;
-		       selected = idx;
-		       goto watchgame;
-                   }
-               }
-           }
-           break;
-	case KEY_NPAGE:
-        case '>':
-	    if ((offset + max_height) < len) offset += max_height;
-          break;
-	case KEY_PPAGE:
-        case '<':
-          if ((offset - max_height) < 0)
-	      offset = 0;
-          else
-            offset -= max_height;
-          break;
-
-	case ERR:
-	case 'q': case 'Q':
-        case '\x1b':
-	    goto leavewatchgame;
-	case KEY_RIGHT:
-	case '.':
-            sortmode_increment(watchcols, &sortmode, 1);
-	    break;
-	case KEY_LEFT:
-	case ',':
-            sortmode_increment(watchcols, &sortmode, -1);
-	    break;
-
-	case 12: case 18: /* ^L, ^R */
-          if (globalconfig.utf8esc) (void) write(1, "\033%G", 3);
-	  clear ();
-	  break;
-
-	case 13:
-	case 10:
-	case KEY_ENTER:
-	    if (selected >= 0 && selected < len) {
-		idx = selected;
-		goto watchgame;
-	    }
-	    break;
-
-        default:
-	    if (strchr(selectorchars, menuchoice) && (len > 0)) {
-		int sidx = strchr(selectorchars, menuchoice) - selectorchars;
-
-		if ((sidx > max_height) || (sidx >= len)) {
-		    selected = -1;
-		    break;
-		}
-
-	      idx = sidx + offset;
-	      if (require_enter) {
-		  if (selected == idx) selected = -1;
-		  else selected = idx;
-		  break;
-	      } else selected = idx;
-watchgame:
-	      if (!(idx >= 0 && idx < len && games[idx] && games[idx]->name))
-		  goto leavewatchgame;
-              /* valid choice has been made */
-              chosen_name = strdup (games[idx]->name);
-              snprintf (ttyrecname, 130, "%s",
-                        games[idx]->ttyrec_fn);
-
-              clear ();
-              refresh ();
-              endwin ();
-	      if (globalconfig.utf8esc) (void) write(1, "\033%G", 3);
-#ifdef USE_SHMEM
-	      signals_block();
-	      if (games[idx]->is_in_shm) {
-		  shm_idx = games[idx]->shm_idx;
-		  shm_sem_wait(shm_dg_data);
-		  if (shm_dg_game[shm_idx].in_use &&
-		      !strcmp(shm_dg_game[shm_idx].ttyrec_fn, games[idx]->ttyrec_fn)) {
-		      shm_dg_game[shm_idx].nwatchers++;
-		      games[idx]->nwatchers++;
-		  }
-		  hup_shm_idx = shm_idx;
-		  hup_shm_ttyrec_fn = strdup(games[idx]->ttyrec_fn);
-		  shm_sem_post(shm_dg_data);
-	      }
-	      signals_release();
-#endif
-	      resizey = games[idx]->ws_row;
-	      resizex = games[idx]->ws_col;
-	      if (loggedin)
-		  setproctitle("%s [watching %s]", me->username, chosen_name);
-	      else
-		  setproctitle("<Anonymous> [watching %s]", chosen_name);
-              ttyplay_main (ttyrecname, 1, resizex, resizey);
-	      if (loggedin)
-		  setproctitle("%s", me->username);
-	      else
-		  setproctitle("<Anonymous>");
-#ifdef USE_SHMEM
-	      signals_block();
-	      if (games[idx]->is_in_shm) {
-		  hup_shm_idx = -1;
-		  free(hup_shm_ttyrec_fn);
-		  shm_sem_wait(shm_dg_data);
-		  if (shm_dg_game[shm_idx].in_use &&
-		      !strcmp(shm_dg_game[shm_idx].ttyrec_fn, games[idx]->ttyrec_fn) &&
-		      (shm_dg_game[shm_idx].nwatchers > 0)) {
-		      shm_dg_game[shm_idx].nwatchers--;
-		      games[idx]->nwatchers--;
-		  }
-		  shm_sem_post(shm_dg_data);
-	      }
-	      signals_release();
-#endif
-              initcurses ();
-	      redrawwin(stdscr);
-            }
-        }
-
-      if (selected >= 0 && selected < len)
-	  selectedgame = strdup(games[selected]->name);
-      games = populate_games (gameid, &len, NULL); /* FIXME: should be 'me' instead of 'NULL' */
-      shm_update(shm_dg_data, games, len);
-      games = sort_games (games, len, sortmode);
-      if (selectedgame) {
-	  selected = -1;
-	  for (i = 0; i < len; i++)
-	      if (!strcmp(games[i]->name, selectedgame)) {
-		  selected = i;
-		  break;
-	      }
-	  free(selectedgame);
-	  selectedgame = NULL;
+        if (sortmode == wcol->sortmode)
+          attron(title_attr);
+        mvprintw(top_banner_hei, x, col);
+        if (sortmode == wcol->sortmode)
+          attroff(title_attr);
       }
     }
+
+    signals_block();
+    shm_sem_wait(shm_dg_data);
+
+    (void)time(&ctime);
+
+    for (i = 0; i < max_height; i++)
+    {
+      if (i + offset >= len)
+        break;
+
+      if (i + offset == selected)
+        attron(selected_attr);
+
+      for (curr_watchcol = watchcols; *curr_watchcol; ++curr_watchcol)
+      {
+        struct dg_watchcols *col = *curr_watchcol;
+        char tmpbuf[80];
+        int hilite = 0;
+        game_get_column_data(games[i + offset],
+                             selectorchars[i],
+                             ctime, shm_dg_game,
+                             tmpbuf, sizeof tmpbuf, &hilite,
+                             (dg_sortmode)col->dat);
+        if (hilite)
+        {
+          attron(hilite);
+        }
+
+        mvprintw(top_banner_hei + 1 + i, col->x, col->fmt, tmpbuf);
+        
+        if (hilite)
+        {
+          attron(CLR_NORMAL);
+          hilite = 0;
+        }
+      }
+
+      if (i + offset == selected)
+        attroff(selected_attr);
+    }
+
+    shm_sem_post(shm_dg_data);
+    signals_release();
+
+    btm = dgl_local_LINES - btm_banner_hei - top_banner_hei;
+    if (len <= max_height)
+      btm = i + 1;
+
+    if (len > 0)
+    {
+      mvprintw((btm + top_banner_hei), 1, "(%d-%d of %d)", offset + 1, offset + i, len);
+      mvaddstr((btm + 2 + top_banner_hei), 1, "Watch which game? ('?' for help) => ");
+    }
+    else
+    {
+      mvprintw(top_banner_hei, 4, "Sorry, no games available for viewing.");
+      mvaddstr((btm + 2 + top_banner_hei), 1, "Press 'q' to return, or '?' for help => ");
+    }
+
+    refresh();
+
+    switch ((menuchoice = dgl_getch()))
+    {
+    case KEY_DOWN:
+      selected++;
+      if (selected >= len)
+        selected = 0;
+      while (selected < offset)
+        offset -= max_height;
+      while (selected >= offset + max_height)
+        offset += max_height;
+      break;
+    case KEY_UP:
+      if (selected != -1)
+      {
+        if (selected == 0)
+          selected = len;
+        selected--;
+      }
+      else
+        selected = len - 1;
+      while (selected < offset)
+        offset -= max_height;
+      while (selected >= offset + max_height)
+        offset += max_height;
+      break;
+    case '*':
+      if (len > 0)
+      {
+        int cnt = 20;
+        (void)time(&ctime);
+        do
+        {
+          idx = random() % len;
+        } while ((--cnt > 0) ||
+                 !((games[idx]->ws_col <= COLS) &&
+                   (games[idx]->ws_row <= LINES) &&
+                   ((ctime - games[idx]->idle_time) < 15)));
+        selected = idx;
+        goto watchgame;
+      }
+      break;
+    case '?':
+      (void)runmenuloop(dgl_find_menu("watchmenu_help"));
+      break;
+    case '/':
+    {
+      int match = -1;
+      int firstmatch = -1;
+      int nmatches = 0;
+      char findname[DGL_PLAYERNAMELEN + 1];
+      if (len <= 0)
+        break;
+      findname[0] = '\0';
+      mvprintw((btm + 2 + top_banner_hei), 1, "Watch which player? =>                 "); /* stupid... */
+      mvaddstr((btm + 2 + top_banner_hei), 1, "Watch which player? => ");
+      if ((mygetnstr(findname, DGL_PLAYERNAMELEN, 1) == OK) && (strlen(findname) > 1))
+      {
+        int mlen = strlen(findname);
+        for (i = 0; i < len; i++)
+          if (!strncasecmp(games[i]->name, findname, mlen))
+          {
+            if (firstmatch == -1)
+              firstmatch = i;
+            match = i;
+            nmatches++;
+          }
+        if (nmatches > 1)
+          match = firstmatch;
+        if (match > -1)
+        {
+          idx = match;
+          selected = idx;
+          goto watchgame;
+        }
+      }
+    }
+    break;
+    case KEY_NPAGE:
+    case '>':
+      if ((offset + max_height) < len)
+        offset += max_height;
+      break;
+    case KEY_PPAGE:
+    case '<':
+      if ((offset - max_height) < 0)
+        offset = 0;
+      else
+        offset -= max_height;
+      break;
+
+    case ERR:
+    case 'q':
+    case 'Q':
+    case '\x1b':
+      goto leavewatchgame;
+    case KEY_RIGHT:
+    case '.':
+      sortmode_increment(watchcols, &sortmode, 1);
+      break;
+    case KEY_LEFT:
+    case ',':
+      sortmode_increment(watchcols, &sortmode, -1);
+      break;
+
+    case 12:
+    case 18: /* ^L, ^R */
+      if (globalconfig.utf8esc)
+        (void)write(1, "\033%G", 3);
+      clear();
+      break;
+
+    case 13:
+    case 10:
+    case KEY_ENTER:
+      if (selected >= 0 && selected < len)
+      {
+        idx = selected;
+        goto watchgame;
+      }
+      break;
+
+    default:
+      if (strchr(selectorchars, menuchoice) && (len > 0))
+      {
+        int sidx = strchr(selectorchars, menuchoice) - selectorchars;
+
+        if ((sidx > max_height) || (sidx >= len))
+        {
+          selected = -1;
+          break;
+        }
+
+        idx = sidx + offset;
+        if (require_enter)
+        {
+          if (selected == idx)
+            selected = -1;
+          else
+            selected = idx;
+          break;
+        }
+        else
+          selected = idx;
+      watchgame:
+        if (!(idx >= 0 && idx < len && games[idx] && games[idx]->name))
+          goto leavewatchgame;
+        /* valid choice has been made */
+        chosen_name = strdup(games[idx]->name);
+        snprintf(ttyrecname, 130, "%s",
+                 games[idx]->ttyrec_fn);
+
+        clear();
+        refresh();
+        endwin();
+        if (globalconfig.utf8esc)
+          (void)write(1, "\033%G", 3);
+#ifdef USE_SHMEM
+        signals_block();
+        if (games[idx]->is_in_shm)
+        {
+          shm_idx = games[idx]->shm_idx;
+          shm_sem_wait(shm_dg_data);
+          if (shm_dg_game[shm_idx].in_use &&
+              !strcmp(shm_dg_game[shm_idx].ttyrec_fn, games[idx]->ttyrec_fn))
+          {
+            shm_dg_game[shm_idx].nwatchers++;
+            games[idx]->nwatchers++;
+          }
+          hup_shm_idx = shm_idx;
+          hup_shm_ttyrec_fn = strdup(games[idx]->ttyrec_fn);
+          shm_sem_post(shm_dg_data);
+        }
+        signals_release();
+#endif
+        resizey = games[idx]->ws_row;
+        resizex = games[idx]->ws_col;
+        if (loggedin)
+          setproctitle("%s [watching %s]", me->username, chosen_name);
+        else
+          setproctitle("<Anonymous> [watching %s]", chosen_name);
+        ttyplay_main(ttyrecname, 1, resizex, resizey);
+        if (loggedin)
+          setproctitle("%s", me->username);
+        else
+          setproctitle("<Anonymous>");
+#ifdef USE_SHMEM
+        signals_block();
+        if (games[idx]->is_in_shm)
+        {
+          hup_shm_idx = -1;
+          free(hup_shm_ttyrec_fn);
+          shm_sem_wait(shm_dg_data);
+          if (shm_dg_game[shm_idx].in_use &&
+              !strcmp(shm_dg_game[shm_idx].ttyrec_fn, games[idx]->ttyrec_fn) &&
+              (shm_dg_game[shm_idx].nwatchers > 0))
+          {
+            shm_dg_game[shm_idx].nwatchers--;
+            games[idx]->nwatchers--;
+          }
+          shm_sem_post(shm_dg_data);
+        }
+        signals_release();
+#endif
+        initcurses();
+        redrawwin(stdscr);
+      }
+    }
+
+    if (selected >= 0 && selected < len)
+    {
+      selectedgame = strdup(games[selected]->name);
+    }
+    games = populate_games(gameid, &len, NULL); /* FIXME: should be 'me' instead of 'NULL' */
+    shm_update(shm_dg_data, games, len);
+    games = sort_games(games, len, sortmode);
+    if (selectedgame)
+    {
+      selected = -1;
+      for (i = 0; i < len; i++)
+        if (!strcmp(games[i]->name, selectedgame))
+        {
+          selected = i;
+          break;
+        }
+      free(selectedgame);
+      selectedgame = NULL;
+    }
+  }
 leavewatchgame:
   free_populated_games(games, len);
 #ifdef USE_SHMEM

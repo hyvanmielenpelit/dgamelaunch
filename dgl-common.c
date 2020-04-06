@@ -623,6 +623,7 @@ free_populated_games(struct dg_game **games, int len)
     for (i = 0; i < len; i++) {
 	if (games[i]->ttyrec_fn) free(games[i]->ttyrec_fn);
 	if (games[i]->name) free(games[i]->name);
+	if (games[i]->version) free(games[i]->version);
 	if (games[i]->date) free(games[i]->date);
 	if (games[i]->time) free(games[i]->time);
         if (games[i]->extra_info) free(games[i]->extra_info);
@@ -670,153 +671,167 @@ game_read_extra_info(struct dg_game *game, const char *extra_info_file)
 }
 
 struct dg_game **
-populate_games (int xgame, int *l, struct dg_user *me)
+populate_games(int xgame, int *l, struct dg_user *me)
 {
-  int fd, len, n, pid;
-  DIR *pdir;
-  struct dirent *pdirent;
-  struct stat pstat;
-  char fullname[130], ttyrecname[130], pidws[80], playername[DGL_PLAYERNAMELEN+1];
-  char *replacestr, *dir, *p;
-  struct dg_game **games = NULL;
-  struct flock fl = { 0 };
+	int fd, len, n, pid;
+	DIR *pdir;
+	struct dirent *pdirent;
+	struct stat pstat;
+	char fullname[130], ttyrecname[130], pidws[80], playername[DGL_PLAYERNAMELEN + 1];
+	char *replacestr, *dir, *p;
+	struct dg_game **games = NULL;
+	struct flock fl = {0};
 
-  int game;
+	int game;
 
-  fl.l_type = F_WRLCK;
-  fl.l_whence = SEEK_SET;
-  fl.l_start = 0;
-  fl.l_len = 0;
+	fl.l_type = F_WRLCK;
+	fl.l_whence = SEEK_SET;
+	fl.l_start = 0;
+	fl.l_len = 0;
 
-  len = 0;
+	len = 0;
 
-  for (game = ((xgame < 0) ? 0 : xgame); game < ((xgame <= 0) ? num_games : (xgame+1)); game++) {
+	for (game = ((xgame < 0) ? 0 : xgame); game < ((xgame <= 0) ? num_games : (xgame + 1)); game++)
+	{
 
-      dir = strdup(dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL));
-      if (!dir) continue;
+		dir = strdup(dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL));
+		if (!dir)
+			continue;
 
-      if (!(pdir = opendir (dir))) {
-	  debug_write("cannot open inprogress-dir");
-	  graceful_exit (140);
-      }
-
-   while ((pdirent = readdir (pdir)))
-    {
-	char *inprog = NULL;
-      if (!strcmp (pdirent->d_name, ".") || !strcmp (pdirent->d_name, ".."))
-        continue;
-
-      inprog = dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL);
-
-      if (!inprog) continue;
-
-      snprintf (fullname, 130, "%s%s", inprog, pdirent->d_name);
-
-      fd = 0;
-      /* O_RDWR here should be O_RDONLY, but we need to test for
-       * an exclusive lock */
-      fd = open (fullname, O_RDWR);
-      if (fd >= 0 && (fcntl (fd, F_SETLK, &fl) == -1))
-        {
-		char *ttrecdir = NULL;
-		strncpy(playername, pdirent->d_name, DGL_PLAYERNAMELEN);
-		playername[DGL_PLAYERNAMELEN] = '\0';
-		if ((replacestr = strchr(playername, ':')))
-		    *replacestr = '\0';
-
-              replacestr = strchr(pdirent->d_name, ':');
-              if (!replacestr) {
-		  debug_write("inprogress-filename does not have ':'");
-		  graceful_exit(145);
-	      }
-              replacestr++;
-
-	      ttrecdir = dgl_format_str(game, me, myconfig[game]->ttyrecdir, playername);
-	      if (!ttrecdir) continue;
-              snprintf (ttyrecname, 130, "%s%s", ttrecdir, replacestr);
-
-          if (!stat (ttyrecname, &pstat))
-            {
-              /* now it's a valid game for sure */
-              games = realloc (games, sizeof (struct dg_game) * (len + 1));
-              games[len] = malloc (sizeof (struct dg_game));
-              games[len]->ttyrec_fn = strdup (ttyrecname);
-
-              if (!(replacestr = strchr (pdirent->d_name, ':'))) {
-		  debug_write("inprogress-filename does not have ':', pt. 2");
-		  graceful_exit (146);
-              } else
-                *replacestr = '\0';
-
-              games[len]->name = malloc (strlen (pdirent->d_name) + 1);
-              strlcpy (games[len]->name, pdirent->d_name,
-                       strlen (pdirent->d_name) + 1);
-
-              games[len]->date = malloc (11);
-              strlcpy (games[len]->date, replacestr + 1, 11);
-
-              games[len]->time = malloc (9);
-              strlcpy (games[len]->time, replacestr + 12, 9);
-
-              games[len]->idle_time = pstat.st_mtime;
-
-	      games[len]->gamenum = game;
-	      games[len]->is_in_shm = 0;
-	      games[len]->nwatchers = 0;
-	      games[len]->shm_idx = -1;
-
-	      n = read(fd, pidws, sizeof(pidws) - 1);
-	      if (n > 0)
-	        {
-		  pidws[n] = '\0';
-		  p = pidws;
+		if (!(pdir = opendir(dir)))
+		{
+			debug_write("cannot open inprogress-dir");
+			graceful_exit(140);
 		}
-	      else
-		p = "";
-	      pid = atoi(p);
-	      while (*p != '\0' && *p != '\n')
-	        p++;
-	      if (*p != '\0')
-	        p++;
-	      games[len]->ws_row = atoi(p);
-	      while (*p != '\0' && *p != '\n')
-	        p++;
-	      if (*p != '\0')
-	        p++;
-	      games[len]->ws_col = atoi(p);
 
-	      if (games[len]->ws_row < 4 || games[len]->ws_col < 4) {
-		  games[len]->ws_row = 24;
-		  games[len]->ws_col = 80;
-	      }
+		while ((pdirent = readdir(pdir)))
+		{
+			char *inprog = NULL;
+			if (!strcmp(pdirent->d_name, ".") || !strcmp(pdirent->d_name, ".."))
+				continue;
 
-              games[len]->extra_info = NULL;
-              games[len]->extra_info_weight = 0;
-              if (myconfig[game]->extra_info_file) {
-                  char *extra_info_file =
-                      dgl_format_str(game, NULL,
-                                     myconfig[game]->extra_info_file,
-                                     games[len]->name);
-                  game_read_extra_info(games[len], extra_info_file);
-              }
+			inprog = dgl_format_str(game, me, myconfig[game]->inprogressdir, NULL);
 
-	      len++;
-            }
-        }
-      else
-        {
-          /* clean dead ones */
-          unlink (fullname);
-        }
-      close (fd);
+			if (!inprog)
+				continue;
 
-      fl.l_type = F_WRLCK;
-    }
+			snprintf(fullname, 130, "%s%s", inprog, pdirent->d_name);
 
-   closedir (pdir);
-  }
-  *l = len;
-  return games;
+			fd = 0;
+			/* O_RDWR here should be O_RDONLY, but we need to test for
+       * an exclusive lock */
+			fd = open(fullname, O_RDWR);
+			if (fd >= 0 && (fcntl(fd, F_SETLK, &fl) == -1))
+			{
+				char *ttrecdir = NULL;
+				strncpy(playername, pdirent->d_name, DGL_PLAYERNAMELEN);
+				playername[DGL_PLAYERNAMELEN] = '\0';
+				if ((replacestr = strchr(playername, ':')))
+					*replacestr = '\0';
+
+				replacestr = strchr(pdirent->d_name, ':');
+				if (!replacestr)
+				{
+					debug_write("inprogress-filename does not have ':'");
+					graceful_exit(145);
+				}
+				replacestr++;
+
+				ttrecdir = dgl_format_str(game, me, myconfig[game]->ttyrecdir, playername);
+				if (!ttrecdir)
+					continue;
+				snprintf(ttyrecname, 130, "%s%s", ttrecdir, replacestr);
+
+				if (!stat(ttyrecname, &pstat))
+				{
+					/* now it's a valid game for sure */
+					games = realloc(games, sizeof(struct dg_game) * (len + 1));
+					games[len] = malloc(sizeof(struct dg_game));
+					games[len]->ttyrec_fn = strdup(ttyrecname);
+
+					if (!(replacestr = strchr(pdirent->d_name, ':')))
+					{
+						debug_write("inprogress-filename does not have ':', pt. 2");
+						graceful_exit(146);
+					}
+					else
+						*replacestr = '\0';
+
+					games[len]->name = malloc(strlen(pdirent->d_name) + 1);
+					strlcpy(games[len]->name, pdirent->d_name,
+							strlen(pdirent->d_name) + 1);
+
+					games[len]->version = malloc(strlen(myconfig[game]->version) + 1);
+					strlcpy(games[len]->version , myconfig[game]->version,
+								strlen(myconfig[game]->version) + 1);
+
+					games[len]->date = malloc(11);
+					strlcpy(games[len]->date, replacestr + 1, 11);
+
+					games[len]->time = malloc(9);
+					strlcpy(games[len]->time, replacestr + 12, 9);
+
+					games[len]->idle_time = pstat.st_mtime;
+
+					games[len]->gamenum = game;
+					games[len]->is_in_shm = 0;
+					games[len]->nwatchers = 0;
+					games[len]->shm_idx = -1;
+
+					n = read(fd, pidws, sizeof(pidws) - 1);
+					if (n > 0)
+					{
+						pidws[n] = '\0';
+						p = pidws;
+					}
+					else
+						p = "";
+					pid = atoi(p);
+					while (*p != '\0' && *p != '\n')
+						p++;
+					if (*p != '\0')
+						p++;
+					games[len]->ws_row = atoi(p);
+					while (*p != '\0' && *p != '\n')
+						p++;
+					if (*p != '\0')
+						p++;
+					games[len]->ws_col = atoi(p);
+
+					if (games[len]->ws_row < 4 || games[len]->ws_col < 4)
+					{
+						games[len]->ws_row = 24;
+						games[len]->ws_col = 80;
+					}
+
+					games[len]->extra_info = NULL;
+					games[len]->extra_info_weight = 0;
+					if (myconfig[game]->extra_info_file)
+					{
+						char *extra_info_file =
+							dgl_format_str(game, NULL,
+										   myconfig[game]->extra_info_file,
+										   games[len]->name);
+						game_read_extra_info(games[len], extra_info_file);
+					}
+
+					len++;
+				}
+			}
+			else
+			{
+				/* clean dead ones */
+				unlink(fullname);
+			}
+			close(fd);
+
+			fl.l_type = F_WRLCK;
+		}
+
+		closedir(pdir);
+	}
+	*l = len;
+	return games;
 }
 
   void

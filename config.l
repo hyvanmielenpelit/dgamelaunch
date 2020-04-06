@@ -74,6 +74,7 @@ cursor		{ return TYPE_CURSOR; }
 "chroot_path"	{ return TYPE_PATH_CHROOT; }
 "game_name"     { return TYPE_NAME_GAME; }
 "short_name"	{ return TYPE_GAME_SHORT_NAME; }
+"version"	{ return TYPE_GAME_VERSION; }
 "game_id"	{ return TYPE_GAME_ID; }
 "game_path"	{ return TYPE_PATH_GAME; }
 "dglroot"	{ return TYPE_PATH_DGLDIR; }

@@ -185,6 +185,7 @@ struct dg_game
 {
   char *ttyrec_fn;
   char *name;
+  char *version;
   char *date;
   char *time;
   time_t idle_time;
@@ -204,6 +205,7 @@ struct dg_config
   char* game_name;
   char* game_id;
   char* shortname;
+  char* version;
   char* rcfile;
   char* ttyrecdir;
   char* spool;
