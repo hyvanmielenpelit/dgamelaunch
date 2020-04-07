@@ -50,7 +50,8 @@ static int sortmode_number(const char *sortmode_name) {
 }
 
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX TYPE_MAXNICKLEN
-%token TYPE_GAME_SHORT_NAME TYPE_GAME_VERSION TYPE_WATCH_SORTMODE TYPE_BANNERVARS
+%token TYPE_GAME_SHORT_NAME TYPE_PRODUCT TYPE_GAME_VERSION TYPE_WATCH_SORTMODE
+%token TYPE_BANNERVARS
 %token TYPE_ALLOW_REGISTRATION TYPE_WATCH_COLUMNS TYPE_GAME_ID
 %token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
@@ -496,6 +497,11 @@ game_definition : TYPE_CMDQUEUE
 		myconfig[ncnf]->shortname = strdup($3);
 		break;
 
+	    case TYPE_PRODUCT:
+		if (myconfig[ncnf]->product) free (myconfig[ncnf]->product);
+		myconfig[ncnf]->product = strdup($3);
+		break;
+
 	    case TYPE_GAME_VERSION:
 		if (myconfig[ncnf]->version) free (myconfig[ncnf]->version);
 		myconfig[ncnf]->version = strdup($3);
@@ -656,6 +662,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_GAME	{ $$ = TYPE_PATH_GAME; }
         | TYPE_NAME_GAME        { $$ = TYPE_NAME_GAME; }
 	| TYPE_GAME_SHORT_NAME	{ $$ = TYPE_GAME_SHORT_NAME; }
+	| TYPE_PRODUCT	{ $$ = TYPE_PRODUCT; }
 	| TYPE_GAME_VERSION	{ $$ = TYPE_GAME_VERSION; }
 	| TYPE_GAME_ID	{ $$ = TYPE_GAME_ID; }
 	| TYPE_PATH_DGLDIR	{ $$ = TYPE_PATH_DGLDIR; }
@@ -694,6 +701,7 @@ const char* lookup_token (int t)
     case TYPE_NAME_GAME: return "game_name";
     case TYPE_ALLOW_REGISTRATION: return "allow_new_nicks";
     case TYPE_GAME_SHORT_NAME: return "short_name";
+    case TYPE_PRODUCT: return "product";
     case TYPE_GAME_VERSION: return "version";
     case TYPE_GAME_ID: return "game_id";
     case TYPE_PATH_DGLDIR: return "dglroot";

@@ -114,12 +114,13 @@ struct dg_banner banner;
 static struct dg_watchcols default_watchcols[] = {
     {SORTMODE_NONE, SORTMODE_NONE,        1, "", "%s)"},
     {SORTMODE_USERNAME, SORTMODE_USERNAME,    4, "Username", "%-10s"},
-    {SORTMODE_GAMENUM, SORTMODE_GAMENUM,    16, "Game/Version", "%-12s"},
-    {SORTMODE_WINDOWSIZE, SORTMODE_WINDOWSIZE, 30, "Size", "%s"},
-    {SORTMODE_STARTTIME, SORTMODE_STARTTIME,  39, "Start date & time", "%s"},
-    {SORTMODE_IDLETIME, SORTMODE_IDLETIME,   60, "Idle time", "%-10s"},
+    {SORTMODE_PRODUCT, SORTMODE_PRODUCT,    15, "Game", "%-11s"},
+    {SORTMODE_VERSION, SORTMODE_VERSION,    27, "Version", "%-9s"},
+    {SORTMODE_WINDOWSIZE, SORTMODE_WINDOWSIZE, 37, "Size", "%s"},
+    {SORTMODE_STARTTIME, SORTMODE_STARTTIME,  44, "Start time (UTC+0)", "%s"},
+    {SORTMODE_IDLETIME, SORTMODE_IDLETIME,   65, "Idle time", "%-10s"},
 #ifdef USE_SHMEM
-    {SORTMODE_WATCHERS, SORTMODE_WATCHERS,   72, "Watchers", "%s"},
+    {SORTMODE_WATCHERS, SORTMODE_WATCHERS,   76, "W", "%s"},
 #endif
 };
 
@@ -1115,7 +1116,12 @@ game_get_column_data(struct dg_game *game,
     snprintf(data, bufsz, "%s", game->name);
     break;
 
-  case SORTMODE_GAMENUM:
+  case SORTMODE_PRODUCT:
+    snprintf(data, bufsz, "%s",
+             myconfig[game->gamenum]->product);
+    break;
+
+  case SORTMODE_VERSION:
     snprintf(data, bufsz, "%s",
              myconfig[game->gamenum]->version);
     break;

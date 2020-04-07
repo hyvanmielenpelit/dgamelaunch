@@ -23,10 +23,12 @@ extern void (*g_chain_winch)(int);
 /* Data structures */
 struct dg_config **myconfig = NULL;
 struct dg_config defconfig = {
-  /* game_path = */ "/bin/nethack",
-  /* game_name = */ "NetHack",
+  /* game_path = */ "/bin/gnollhack",
+  /* game_name = */ "GnollHack",
   /* game_id = */ NULL,
-  /* shortname = */ "NH",
+  /* shortname = */ "GNH",
+  /* product = */ "GnollHack",
+  /* version = */ "4.0",
   /* rcfile = */ NULL, /*"/dgl-default-rcfile",*/
   /* ttyrecdir =*/ "%ruserdata/%n/ttyrec/",
   /* spool = */ "/var/mail/",
@@ -521,6 +523,22 @@ sort_game_extrainfo(const void *g1, const void *g2)
 }
 
 static int
+sort_game_product(const void *g1, const void *g2)
+{
+    const struct dg_game *game1 = *(const struct dg_game **)g1;
+    const struct dg_game *game2 = *(const struct dg_game **)g2;
+	return strcasecmp(game1->product, game2->product);
+}
+
+static int
+sort_game_version(const void *g1, const void *g2)
+{
+    const struct dg_game *game1 = *(const struct dg_game **)g1;
+    const struct dg_game *game2 = *(const struct dg_game **)g2;
+	return strcasecmp(game1->version, game2->version);
+}
+
+static int
 sort_game_gamenum(const void *g1, const void *g2)
 {
     const struct dg_game *game1 = *(const struct dg_game **)g1;
@@ -576,7 +594,9 @@ sort_games (struct dg_game **games, int len, dg_sortmode sortmode)
 {
     switch (sortmode) {
     case SORTMODE_USERNAME: qsort(games, len, sizeof(struct dg_game *), sort_game_username); break;
-    case SORTMODE_GAMENUM: qsort(games, len, sizeof(struct dg_game *), sort_game_gamenum); break;
+    //case SORTMODE_GAMENUM: qsort(games, len, sizeof(struct dg_game *), sort_game_gamenum); break;
+	case SORTMODE_PRODUCT: qsort(games, len, sizeof(struct dg_game *), sort_game_product); break;
+	case SORTMODE_VERSION: qsort(games, len, sizeof(struct dg_game *), sort_game_version); break;
     case SORTMODE_WINDOWSIZE: qsort(games, len, sizeof(struct dg_game *), sort_game_windowsize); break;
     case SORTMODE_IDLETIME:
 	(void) time(&sort_ctime);
@@ -623,6 +643,7 @@ free_populated_games(struct dg_game **games, int len)
     for (i = 0; i < len; i++) {
 	if (games[i]->ttyrec_fn) free(games[i]->ttyrec_fn);
 	if (games[i]->name) free(games[i]->name);
+	if (games[i]->product) free(games[i]->product);
 	if (games[i]->version) free(games[i]->version);
 	if (games[i]->date) free(games[i]->date);
 	if (games[i]->time) free(games[i]->time);
@@ -760,6 +781,10 @@ populate_games(int xgame, int *l, struct dg_user *me)
 					games[len]->name = malloc(strlen(pdirent->d_name) + 1);
 					strlcpy(games[len]->name, pdirent->d_name,
 							strlen(pdirent->d_name) + 1);
+
+					games[len]->product = malloc(strlen(myconfig[game]->product) + 1);
+					strlcpy(games[len]->product , myconfig[game]->product,
+								strlen(myconfig[game]->product) + 1);
 
 					games[len]->version = malloc(strlen(myconfig[game]->version) + 1);
 					strlcpy(games[len]->version , myconfig[game]->version,

@@ -84,7 +84,8 @@ typedef enum
 {
     SORTMODE_NONE = 0,
     SORTMODE_USERNAME,
-    SORTMODE_GAMENUM,
+    SORTMODE_PRODUCT,
+    SORTMODE_VERSION,
     SORTMODE_WINDOWSIZE,
     SORTMODE_STARTTIME,
     SORTMODE_DURATION,
@@ -185,6 +186,7 @@ struct dg_game
 {
   char *ttyrec_fn;
   char *name;
+  char *product;
   char *version;
   char *date;
   char *time;
@@ -205,6 +207,7 @@ struct dg_config
   char* game_name;
   char* game_id;
   char* shortname;
+  char* product;
   char* version;
   char* rcfile;
   char* ttyrecdir;
