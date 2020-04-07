@@ -33,6 +33,7 @@ struct dg_config defconfig = {
   /* ttyrecdir =*/ "%ruserdata/%n/ttyrec/",
   /* spool = */ "/var/mail/",
   /* inprogressdir = */ "%rinprogress/",
+  /* logdir = */ "/bin/var/",
   /* num_args = */ 0,
   /* bin_args = */ NULL,
   /* rc_fmt = */ "%rrcfiles/%n.nethackrc", /* [dglroot]rcfiles/[username].nethackrc */
@@ -351,6 +352,20 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 	    break;
 	case DGLCMD_WATCH_MENU:
 	    inprogressmenu(-1);
+	    break;
+	case DGLCMD_LOGGEDGAMES_MENU:
+		if (game_chosen)
+		{
+			for (int userchoice = 0; userchoice < num_games; userchoice++)
+			{
+				if (strcmp(myconfig[userchoice]->shortname, chosengamename) == 0)
+				{
+					latestgamesmenu(userchoice);
+					break;
+				}
+			}
+		}
+	    
 	    break;
 	case DGLCMD_LOGIN:
 	    if (!loggedin) loginprompt(0);

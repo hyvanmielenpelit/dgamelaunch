@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.tcc": "c",
+        "deque": "c",
+        "string": "c",
+        "vector": "c"
+    }
+}

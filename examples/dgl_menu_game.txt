@@ -6,6 +6,7 @@ p) Play game
 d) Set options to defaults
 o) Edit options
 c) Copy options from another game
+l) View latest games
 
 q) Return
 

@@ -24,8 +24,10 @@
 #define DGL_MAILMSGLEN 80 /* max. length of mail message */
 
 #define DGL_MAXWATCHCOLS 10
+#define DGL_MAXLOGGEDGAMESCOLS 12
 
 #define DGL_BANNER_LINELEN 256 /* max. length of banner lines*/
+#define DGL_XLOGFILE_LINELEN 2048
 
 #ifdef USE_NCURSES_COLOR
 # define CLR_NORMAL  COLOR_PAIR(11)   | A_NORMAL
@@ -66,6 +68,7 @@ typedef enum
     DGLCMD_EXEC,	/* exec foo bar */
     DGLCMD_SETENV,	/* setenv foo bar */
     DGLCMD_WATCH_MENU,  /* watch_menu */
+    DGLCMD_LOGGEDGAMES_MENU,  /* logged_games_menu */
     DGLCMD_LOGIN,       /* ask_login */
     DGLCMD_REGISTER,	/* ask_register */
     DGLCMD_QUIT,	/* quit */
@@ -100,7 +103,8 @@ typedef enum
 static const char *SORTMODE_NAME[NUM_SORTMODES] = {
     "Unsorted",
     "Username",
-    "Game",
+    "Product",
+    "Version"
     "Windowsize",
     "Starttime",
     "Duration",
@@ -203,16 +207,17 @@ struct dg_game
 
 struct dg_config
 {
-  char* game_path;
-  char* game_name;
-  char* game_id;
-  char* shortname;
-  char* product;
-  char* version;
-  char* rcfile;
-  char* ttyrecdir;
-  char* spool;
-  char* inprogressdir;
+    char* game_path;
+    char* game_name;
+    char* game_id;
+    char* shortname;
+    char* product;
+    char* version;
+    char* rcfile;
+    char* ttyrecdir;
+    char* spool;
+    char* inprogressdir;
+    char* logdir;
     int num_args; /* # of bin_args */
     char **bin_args; /* args for game binary */
     char *rc_fmt;
@@ -229,6 +234,86 @@ struct dg_watchcols {
     int x;
     char *colname;
     char *fmt;
+};
+
+typedef enum
+{
+    LOGGEDGAME_COL_NAME = 0,
+    LOGGEDGAME_COL_ROLE,
+    LOGGEDGAME_COL_RACE,
+    LOGGEDGAME_COL_GENDER,
+    LOGGEDGAME_COL_ALIGNMENT,
+    LOGGEDGAME_COL_DIFFICULTY,
+    LOGGEDGAME_COL_POINTS,
+    LOGGEDGAME_COL_TURNS,
+    LOGGEDGAME_COL_TIME,
+    LOGGEDGAME_COL_DEATH,
+    NUM_LOGGEDGAME_COLS
+} dg_loggedgame_coltypes;
+
+typedef enum
+{
+    TOPGAME_COL_RANK = 0,
+    TOPGAME_COL_POINTS,
+    TOPGAME_COL_NAME,
+    TOPGAME_COL_ROLE,
+    TOPGAME_COL_RACE,
+    TOPGAME_COL_GENDER,
+    TOPGAME_COL_ALIGNMENT,
+    TOPGAME_COL_DIFFICULTY,
+    TOPGAME_COL_TURNS,
+    TOPGAME_COL_DATE,
+    TOPGAME_COL_DEATH,
+    NUM_TOPGAME_COLS
+} dg_topgame_coltypes;
+
+struct dg_loggedgames_cols {
+    int coltype;
+    int x;
+    char *colname;
+    char *fmt;
+};
+
+struct dg_topgames_cols {
+    int coltype;
+    int x;
+    char *colname;
+    char *fmt;
+};
+
+struct dg_xlogfile_data {
+    char *version;
+    long long points;
+    int deathdnum;
+    int deathlev;
+    int maxlvl;
+    int hp;
+    int maxhp;
+    int deaths;
+    time_t deathdate;
+    time_t birthdate;
+    int uid;
+    char *role;
+    char *race;
+
+    char *gender;
+    char *align;
+
+    char *name;
+    char *death;
+    int conduct;
+    long turns;
+    int achieve;
+    long realtime;
+    time_t starttime;
+    time_t endtime;
+
+    char *gender0;
+    char *align0;
+
+    int flags;
+    int difficulty;
+    char *mode;
 };
 
 struct dg_globalconfig
@@ -338,6 +423,12 @@ extern int dgl_getch(void);
 extern void idle_alarm_set_enabled(int enabled);
 extern void idle_alarm_reset(void);
 extern void inprogressmenu(int gameid);
+extern void latestgamesmenu(int gameid);
+extern void set_xlogfile_defaults(struct dg_xlogfile_data *line);
+extern char* insert_commas_ll (long long n);
+extern char* insert_commas (char* src);
+extern void free_dg_xlogfile_data(struct dg_xlogfile_data *line);
+
 extern void change_email(void);
 extern int changepw(int dowrite);
 extern void domailuser(char *username);

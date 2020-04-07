@@ -93,6 +93,7 @@
 #include <unistd.h>
 #include <termios.h>
 
+
 extern FILE* yyin;
 extern int yyparse ();
 
@@ -124,6 +125,33 @@ static struct dg_watchcols default_watchcols[] = {
 #endif
 };
 
+static struct dg_topgames_cols default_topgames_cols[] = {
+    {TOPGAME_COL_RANK, 1, "Rank", "%-3s)"},
+    {TOPGAME_COL_POINTS, 5, "Score", "%-11s"},
+    {TOPGAME_COL_NAME, 17, "Name", "%-10s"},
+    {TOPGAME_COL_ROLE, 28, "Rol", "%-3s"},
+    {TOPGAME_COL_RACE, 32, "Rac", "%-3s"},
+    {TOPGAME_COL_GENDER, 36, "G", "%s"},
+    {TOPGAME_COL_ALIGNMENT, 38, "A", "%s"},
+    {TOPGAME_COL_DIFFICULTY, 40, "D", "%s"},
+    {TOPGAME_COL_TURNS, 42, "Turns", "%s"},
+    {TOPGAME_COL_DATE, 49, "Date", "%s"},
+    {TOPGAME_COL_DEATH, 60, "Death", "%s"}
+};
+
+static struct dg_loggedgames_cols default_loggedgames_cols[] = {
+    {LOGGEDGAME_COL_NAME, 1, "Name", "%s)"},
+    {LOGGEDGAME_COL_ROLE, 12, "Rol", "%s"},
+    {LOGGEDGAME_COL_RACE, 16, "Rac", "%s"},
+    {LOGGEDGAME_COL_GENDER, 20, "G", "%s"},
+    {LOGGEDGAME_COL_ALIGNMENT, 22, "A", "%s"},
+    {LOGGEDGAME_COL_DIFFICULTY, 24, "D", "%s"},
+    {LOGGEDGAME_COL_POINTS, 26, "Score", "%-10s"},
+    {LOGGEDGAME_COL_TURNS, 38, "Turns", "%-11s"},
+    {LOGGEDGAME_COL_TIME, 45, "Time", "%s"},
+    {LOGGEDGAME_COL_DEATH, 62, "Death", "%s"}    
+};
+
 int color_remap[16] = {
     COLOR_PAIR(9) | A_NORMAL,
     COLOR_PAIR(COLOR_BLUE) | A_NORMAL,
@@ -144,6 +172,7 @@ int color_remap[16] = {
 };
 
 static struct dg_watchcols *default_watchcols_list[DGL_MAXWATCHCOLS + 1];
+static struct dg_loggedgames_cols *default_loggedgames_cols_list[DGL_MAXLOGGEDGAMESCOLS + 1];
 
 struct dg_user *
 cpy_me(struct dg_user *me)
@@ -562,10 +591,9 @@ loadbanner (char *fname, struct dg_banner *ban)
 	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", "[Anonymous]"), DGL_BANNER_LINELEN);
 	  }
 
-    if (me && game_chosen)
+    if (game_chosen)
     {
-      int userchoice;
-      for (userchoice = 0; userchoice < num_games; userchoice++)
+      for (int userchoice = 0; userchoice < num_games; userchoice++)
       {
         if (!strcmp(myconfig[userchoice]->game_id, chosengamename) || !strcmp(myconfig[userchoice]->shortname, chosengamename))
         {
@@ -1017,6 +1045,21 @@ globalconfig_watch_columns()
             default_watchcols_list[i] = &default_watchcols[i];
     }
     return default_watchcols_list;
+}
+
+static
+struct dg_loggedgames_cols **
+globalconfig_loggedgames_columns()
+{
+    // if (globalconfig.n_watch_columns)
+    //     return globalconfig.watch_columns;
+
+    if (!*default_loggedgames_cols_list) {
+        int i;
+        for (i = 0; i < ARRAY_SIZE(default_loggedgames_cols); ++i)
+            default_loggedgames_cols_list[i] = &default_loggedgames_cols[i];
+    }
+    return default_loggedgames_cols_list;
 }
 
 static
@@ -1619,6 +1662,475 @@ inprogressdisplay (int gameid)
 #ifdef USE_SHMEM
   shmdt(shm_dg_data);
 #endif
+}
+
+void set_xlogfile_defaults(struct dg_xlogfile_data *line)
+{
+  line->achieve = 0;
+  line->align0 = "";
+  line->align = "";
+  line->birthdate = 0;
+  line->conduct = 0;
+  line->death = "";
+  line->deathdate = 0;
+  line->deathdnum = 0;
+  line->deathlev = 0;
+  line->deaths = 0;
+  line->difficulty = 0;
+  line->endtime = 0;
+  line->flags = 0;
+  line->gender0 = "";
+  line->gender = "";
+  line->hp = 0;
+  line->maxhp = 0;
+  line->maxlvl = 0;
+  line->mode = "";
+  line->name = "";
+  line->points = 0;
+  line->race = "";
+  line->realtime = 0;
+  line->role = "";
+  line->starttime = 0;
+  line->turns = 0;
+  line->uid = 0;
+  line->version = "";
+}
+
+/* ************************************************************* */
+
+/*
+ * Show Latest Games
+ */
+
+void latestgamesmenu(int gameid)
+{
+  char filename[512];
+  memset(filename, 0, 512);
+
+  sprintf(filename, "%s%s", myconfig[gameid]->logdir, "xlogfile");
+  FILE* filestream = fopen(filename, "r");
+  if(filestream == NULL)
+  {
+    char message[600];
+    memset(filename, 0, 512);
+    sprintf(message, "Could not write to file: %s", filename);
+    debug_write(message);
+    return;
+  }
+
+  term_resize_check();
+  erase();
+  drawbanner(&banner);
+
+  int maxlinenum = 10000;
+  int linenum = 0;
+  int linelength = 0;
+  int finishafterthiscolumn = 0;
+
+  struct dg_xlogfile_data **lines = malloc(sizeof(size_t) * maxlinenum);
+  struct dg_xlogfile_data *curline = NULL;
+
+  char message[256];
+  char buf[DGL_XLOGFILE_LINELEN];
+  char *buf2 = buf;
+  char *foundchar, *equalchar, *value;
+  memset(buf, 0, DGL_XLOGFILE_LINELEN);
+
+  while(fgets(buf2, DGL_XLOGFILE_LINELEN, filestream) != NULL)
+  {
+    finishafterthiscolumn = 0;
+
+    struct dg_xlogfile_data *line = malloc(sizeof(struct dg_xlogfile_data));
+
+    set_xlogfile_defaults(line);
+    
+    curline = line;
+    lines[linenum] = line;
+    linelength = strlen(buf2);
+
+    while(finishafterthiscolumn == 0)
+    {
+      foundchar = strstr(buf2, "\t");
+      if(foundchar == NULL)
+      {
+          //last column
+          //remove /n
+          buf2[strlen(buf2) - 1] = '\0';
+          finishafterthiscolumn = 1;
+      }
+      else
+      {
+          *foundchar = '\0';
+      }
+      
+      equalchar = strstr(buf2, "=");
+
+      if(equalchar == NULL)
+      {
+        sprintf(message, "Equal sign not found in a column in a xlogfile: %s", buf2);
+        debug_write(message);
+        continue;
+      }
+
+      *equalchar = '\0';
+      value = equalchar + 1;
+      
+      if(strcmp(buf2, "version") == 0)
+      {
+        line->version = strdup(value);
+      }
+      else if (strcmp(buf2, "points") == 0)
+      {
+        line->points = atoll(value);
+      }
+      else if (strcmp(buf2, "deathdnum") == 0)
+      {
+        line->deathdnum = atoi(value);
+      }
+      else if (strcmp(buf2, "deathlev") == 0)
+      {
+        line->deathlev = atoi(value);
+      }
+      else if (strcmp(buf2, "maxlvl") == 0)
+      {
+        line->maxlvl = atoi(value);
+      }
+      else if (strcmp(buf2, "hp") == 0)
+      {
+        line->hp = atoi(value);
+      }
+      else if (strcmp(buf2, "maxhp") == 0)
+      {
+        line->maxhp = atoi(value);
+      }
+      else if (strcmp(buf2, "deaths") == 0)
+      {
+        line->deaths = atoi(value);
+      }
+      else if (strcmp(buf2, "deathdate") == 0)
+      {
+        line->deathdate = (time_t)atoll(value);
+      }
+      else if (strcmp(buf2, "birthdate") == 0)
+      {
+        line->birthdate = (time_t)atoll(value);
+      }
+      else if (strcmp(buf2, "uid") == 0)
+      {
+        line->uid = atoi(value);
+      }
+      else if (strcmp(buf2, "role") == 0)
+      {
+        line->role = strdup(value);
+      }
+      else if (strcmp(buf2, "race") == 0)
+      {
+        line->race = strdup(value);
+      }
+      else if (strcmp(buf2, "gender") == 0)
+      {
+        line->gender = strdup(value);
+      }
+      else if (strcmp(buf2, "align") == 0)
+      {
+        line->align = strdup(value);
+      }
+      else if (strcmp(buf2, "name") == 0)
+      {
+        line->name = strdup(value);
+      }
+      else if (strcmp(buf2, "death") == 0)
+      {
+        line->death = strdup(value);
+      }
+      else if (strcmp(buf2, "conduct") == 0)
+      {
+        line->conduct = atoi(value);
+      }
+      else if (strcmp(buf2, "turns") == 0)
+      {
+        line->turns = atol(value);
+      }
+      else if (strcmp(buf2, "achieve") == 0)
+      {
+        line->achieve = atoi(value);
+      }
+      else if (strcmp(buf2, "realtime") == 0)
+      {
+        line->realtime = atol(value);
+      }
+      else if (strcmp(buf2, "starttime") == 0)
+      {
+        line->starttime = (time_t) atoll(value);
+      }
+      else if (strcmp(buf2, "endtime") == 0)
+      {
+        line->endtime = (time_t) atoll(value);
+      }
+      else if (strcmp(buf2, "gender0") == 0)
+      {
+        line->gender0 = strdup(value);
+      }
+      else if (strcmp(buf2, "align0") == 0)
+      {
+        line->align0 = strdup(value);
+      }
+      else if (strcmp(buf2, "flags") == 0)
+      {
+        line->flags = atoi(value);
+      }
+      else if (strcmp(buf2, "difficulty") == 0)
+      {
+        line->difficulty = atoi(value);
+      }
+      else if (strcmp(buf2, "mode") == 0)
+      {
+        line->mode = strdup(value);
+      }
+      else
+      {
+        //Unknown column, skip
+      }
+
+      if(foundchar != NULL)
+      {
+        buf2 = foundchar + 1;
+      }
+    }    
+
+    curline++;
+    linenum++;
+  }
+
+  fclose(filestream);
+
+  //Game Name
+  
+  int y_header = 1 + 2;
+
+  if (game_chosen)
+  {
+    for (int userchoice = 0; userchoice < num_games; userchoice++)
+    {
+      if (strcmp(myconfig[userchoice]->shortname, chosengamename) == 0)
+      {
+          mvaddstr(y_header, 1, myconfig[userchoice]->game_name);
+      }
+    }
+  }
+
+  //Header Row
+
+  y_header += 2;
+  
+  struct dg_loggedgames_cols **columns = globalconfig_loggedgames_columns();
+
+  for(int col = 0; col < NUM_LOGGEDGAME_COLS; col++)
+  {
+    int x = columns[col]->x;
+    mvaddstr(y_header, x, columns[col]->colname);
+  }
+
+
+  // Row Lines
+
+  int y_row = y_header + 1;
+  int maxshownlines = linenum;
+  if(maxshownlines > 10)
+  {
+    maxshownlines = 10;
+  }
+
+  for(int i = 0; i < maxshownlines; i++)
+  {
+    curline = lines[linenum - 1 - i];
+    for(int col = 0; col < NUM_LOGGEDGAME_COLS; col++)
+    {
+      int x = columns[col]->x;
+      char* value;
+      int freevalue = 0;
+      switch(columns[col]->coltype)
+      {
+        case LOGGEDGAME_COL_NAME:
+        value = curline->name;
+        break;
+
+        case LOGGEDGAME_COL_ROLE:
+        value = curline->role;
+        break;
+
+        case LOGGEDGAME_COL_RACE:
+        value = curline->race;
+        break;
+
+        case LOGGEDGAME_COL_GENDER:
+        value = malloc(2 * sizeof(char));
+        strncpy(value, curline->gender, 1);
+        value[1] = '\0';
+        freevalue = 1;
+        break;
+
+        case LOGGEDGAME_COL_ALIGNMENT:
+        value = malloc(2 * sizeof(char));
+        strncpy(value, curline->align, 1);
+        value[1] = '\0';
+        freevalue = 1;
+        break;
+
+        case LOGGEDGAME_COL_DIFFICULTY:
+        switch(curline->difficulty)
+        {
+          case -2:
+          value = "E";
+          break;
+
+          case -1:
+          value = "e";
+          break;
+
+          case 0:
+          value = "N";
+          break;
+        
+          case 1:
+          value = "h";
+          break;
+
+          case 2:
+          value = "H";
+          break;
+
+          default:
+          value = "?";
+          break;
+        }
+        break;
+
+        case LOGGEDGAME_COL_POINTS:
+          value = insert_commas_ll(curline->points);
+          freevalue = 1;
+        break;
+
+        case LOGGEDGAME_COL_TURNS:
+          value = malloc(8 * sizeof(char));
+          sprintf(value, "%d", curline->turns);
+          freevalue = 1;
+        break;
+
+        case LOGGEDGAME_COL_TIME:
+          value = malloc(20 * sizeof(char));
+          struct tm *timeinfo = malloc(sizeof(struct tm));
+          time_t time = (time_t)curline->endtime;
+          localtime_r(&time, timeinfo);
+
+          strftime(value, 20 * sizeof(char), "%Y-%m-%d %H:%M", timeinfo);
+
+          free(timeinfo);
+          freevalue = 1;
+        break;
+
+        case LOGGEDGAME_COL_DEATH:
+          ;
+          int maxwidth = dgl_local_COLS - x;
+          value = malloc((maxwidth + 1) * sizeof(char));
+          strncpy(value, curline->death, maxwidth);
+          freevalue = 1;
+        break;
+
+        default:
+        value = "";
+        break;
+      }
+      mvaddstr(y_row, x, value);
+      if(freevalue)
+      {
+        free(value);
+      }
+    }
+    
+    y_row++;
+  }
+
+  //Free lines
+  for(int i = 0; i < linenum; i++)
+  {
+    struct dg_xlogfile_data *line = lines[i];
+    free_dg_xlogfile_data(line);
+  }
+
+  free(lines);
+
+  y_row++;
+  mvaddstr(y_row, 1, "r) Resize to terminal");
+  y_row++;
+  mvaddstr(y_row, 1, "q) Return");
+  y_row += 2;
+  mvaddstr(y_row, 1, "=>");
+  mvprintw(y_row, 3, "");
+	// refresh();
+
+  while (1)
+  {
+    int menuchoice = 0;
+    switch ((menuchoice = dgl_getch()))
+    {
+      case 'r':
+        term_resize_check();
+        break;
+      case ERR:
+      case 'q':
+      case 'Q':
+      case '\x1b':
+        return;
+      default:
+        //Do nothing
+        break;
+    }
+  }
+}
+
+void free_dg_xlogfile_data(struct dg_xlogfile_data *line)
+{
+  if(!line) return;
+  if(line->align0) free (line->align0);
+  if(line->align) free (line->align);
+  if(line->death) free (line->death);
+  if(line->gender0) free (line->gender0);
+  if(line->gender) free (line->gender);
+  if(line->mode) free (line->mode);
+  if(line->name) free (line->name);
+  if(line->race) free (line->race);
+  if(line->role) free (line->role);
+  if(line->version) free (line->version);
+  free(line);
+}
+
+char* insert_commas_ll (long long n) {
+    char* buf = malloc(20 * sizeof(char));
+    sprintf(buf, "%d", n);
+    char* result = insert_commas(buf);
+    free(buf);
+    return result;
+}
+
+char* insert_commas (char* src) {
+    int n_length = strlen(src);
+    int comma_number = (n_length - 1) / 3;
+    char* buf2 = malloc((n_length + comma_number + 1) * sizeof(char));
+    buf2[n_length + comma_number] = '\0';
+    int cur_comma_count = 0;
+    int char_count = 0;
+
+    for(int i = n_length - 1; i >= 0; i--)
+    {
+      if(char_count % 3 == 0 && char_count > 0)
+      {
+        buf2[i-cur_comma_count] = ',';
+        cur_comma_count++;
+      }
+      buf2[i-cur_comma_count] = src[i];
+    }
+    return buf2;
 }
 
 /* ************************************************************* */
