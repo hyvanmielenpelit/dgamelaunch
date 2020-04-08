@@ -1696,214 +1696,219 @@ void latestgamesmenu(int gameid)
   memset(filename, 0, 512);
 
   sprintf(filename, "%s%s", myconfig[gameid]->logdir, "xlogfile");
-  FILE* filestream = fopen(filename, "r");
-  
-  if(filestream == NULL)
-  {
-    char message[600];
-    memset(filename, 0, 512);
-    sprintf(message, "Could not write to file: %s", filename);
-    debug_write(message);
-    return;
-  }
 
-  fseek(filestream, 0, 0);
-  
   int maxlinenum = 50;
   int linenum = 0;
-  int linelength = 0;
-  int finishafterthiscolumn = 0;
-
   struct dg_xlogfile_data **lines = malloc(sizeof(size_t) * maxlinenum);
-  struct dg_xlogfile_data *curline = NULL;
 
-  char message[256];
-  char *buf = malloc(DGL_XLOGFILE_LINELEN * sizeof(char));
-  char *buf2 = buf;
-  char *foundchar, *equalchar, *value;
-  memset(buf, 0, DGL_XLOGFILE_LINELEN);
-
-  while(fgets(buf, DGL_XLOGFILE_LINELEN, filestream) != NULL)
+  //Check if xlogfile exists
+  if(access(filename, R_OK) != -1)
   {
-    buf2 = buf;
-
-    if(linenum == maxlinenum)
+    FILE* filestream = fopen(filename, "r");
+    
+    if(filestream == NULL)
     {
-      //Autoincrease lines size
-      int newmaxlinenum = 4 * maxlinenum;
-      struct dg_xlogfile_data **lines2 = malloc(sizeof(size_t) * newmaxlinenum);
-      memcpy(lines2, lines, sizeof(size_t) * maxlinenum);
-      free(lines);
-      lines = lines2;
-      maxlinenum = newmaxlinenum;
+      char message[600];
+      memset(filename, 0, 512);
+      sprintf(message, "Cannot read from file: %s", filename);
+      debug_write(message);
+      return;
     }
 
-    finishafterthiscolumn = 0;
-  
-    struct dg_xlogfile_data *line = malloc(sizeof(struct dg_xlogfile_data));
-
-    set_xlogfile_defaults(line);
+    fseek(filestream, 0, 0);
     
-    lines[linenum] = line;
-    linelength = strlen(buf2);
+    int linelength = 0;
+    int finishafterthiscolumn = 0;
 
-    line->rownumber = linenum + 1;
+    char message[256];
+    char *buf = malloc(DGL_XLOGFILE_LINELEN * sizeof(char));
+    char *buf2 = buf;
+    char *foundchar, *equalchar, *value;
+    memset(buf, 0, DGL_XLOGFILE_LINELEN);
 
-    while(finishafterthiscolumn == 0)
+    while(fgets(buf, DGL_XLOGFILE_LINELEN, filestream) != NULL)
     {
-      foundchar = strstr(buf2, "\t");
-      if(foundchar == NULL)
+      buf2 = buf;
+
+      if(linenum == maxlinenum)
       {
-          //last column
-          //remove /n
-          buf2[strlen(buf2) - 1] = '\0';
-          finishafterthiscolumn = 1;
+        //Autoincrease lines size
+        int newmaxlinenum = 4 * maxlinenum;
+        struct dg_xlogfile_data **lines2 = malloc(sizeof(size_t) * newmaxlinenum);
+        memcpy(lines2, lines, sizeof(size_t) * maxlinenum);
+        free(lines);
+        lines = lines2;
+        maxlinenum = newmaxlinenum;
       }
-      else
-      {
-          *foundchar = '\0';
-      }
+
+      finishafterthiscolumn = 0;
+    
+      struct dg_xlogfile_data *line = malloc(sizeof(struct dg_xlogfile_data));
+
+      set_xlogfile_defaults(line);
       
-      equalchar = strstr(buf2, "=");
+      lines[linenum] = line;
+      linelength = strlen(buf2);
 
-      if(equalchar == NULL)
-      {
-        sprintf(message, "Equal sign not found in a column in a xlogfile: %s", buf2);
-        debug_write(message);
-        continue;
-      }
+      line->rownumber = linenum + 1;
 
-      *equalchar = '\0';
-      value = equalchar + 1;
-      
-      if(strcmp(buf2, "version") == 0)
+      while(finishafterthiscolumn == 0)
       {
-        line->version = strdup(value);
-      }
-      else if (strcmp(buf2, "points") == 0)
-      {
-        line->points = atoll(value);
-      }
-      else if (strcmp(buf2, "deathdnum") == 0)
-      {
-        line->deathdnum = atoi(value);
-      }
-      else if (strcmp(buf2, "deathlev") == 0)
-      {
-        line->deathlev = atoi(value);
-      }
-      else if (strcmp(buf2, "maxlvl") == 0)
-      {
-        line->maxlvl = atoi(value);
-      }
-      else if (strcmp(buf2, "hp") == 0)
-      {
-        line->hp = atoi(value);
-      }
-      else if (strcmp(buf2, "maxhp") == 0)
-      {
-        line->maxhp = atoi(value);
-      }
-      else if (strcmp(buf2, "deaths") == 0)
-      {
-        line->deaths = atoi(value);
-      }
-      else if (strcmp(buf2, "deathdate") == 0)
-      {
-        line->deathdate = (time_t)atoll(value);
-      }
-      else if (strcmp(buf2, "birthdate") == 0)
-      {
-        line->birthdate = (time_t)atoll(value);
-      }
-      else if (strcmp(buf2, "uid") == 0)
-      {
-        line->uid = atoi(value);
-      }
-      else if (strcmp(buf2, "role") == 0)
-      {
-        line->role = strdup(value);
-      }
-      else if (strcmp(buf2, "race") == 0)
-      {
-        line->race = strdup(value);
-      }
-      else if (strcmp(buf2, "gender") == 0)
-      {
-        line->gender = strdup(value);
-      }
-      else if (strcmp(buf2, "align") == 0)
-      {
-        line->align = strdup(value);
-      }
-      else if (strcmp(buf2, "name") == 0)
-      {
-        line->name = strdup(value);
-      }
-      else if (strcmp(buf2, "death") == 0)
-      {
-        line->death = strdup(value);
-      }
-      else if (strcmp(buf2, "conduct") == 0)
-      {
-        line->conduct = atoi(value);
-      }
-      else if (strcmp(buf2, "turns") == 0)
-      {
-        line->turns = atol(value);
-      }
-      else if (strcmp(buf2, "achieve") == 0)
-      {
-        line->achieve = atoi(value);
-      }
-      else if (strcmp(buf2, "realtime") == 0)
-      {
-        line->realtime = atol(value);
-      }
-      else if (strcmp(buf2, "starttime") == 0)
-      {
-        line->starttime = (time_t) atoll(value);
-      }
-      else if (strcmp(buf2, "endtime") == 0)
-      {
-        line->endtime = (time_t) atoll(value);
-      }
-      else if (strcmp(buf2, "gender0") == 0)
-      {
-        line->gender0 = strdup(value);
-      }
-      else if (strcmp(buf2, "align0") == 0)
-      {
-        line->align0 = strdup(value);
-      }
-      else if (strcmp(buf2, "flags") == 0)
-      {
-        line->flags = atoi(value);
-      }
-      else if (strcmp(buf2, "difficulty") == 0)
-      {
-        line->difficulty = atoi(value);
-      }
-      else if (strcmp(buf2, "mode") == 0)
-      {
-        line->mode = strdup(value);
-      }
-      else
-      {
-        //Unknown column, skip
-      }
+        foundchar = strstr(buf2, "\t");
+        if(foundchar == NULL)
+        {
+            //last column
+            //remove /n
+            buf2[strlen(buf2) - 1] = '\0';
+            finishafterthiscolumn = 1;
+        }
+        else
+        {
+            *foundchar = '\0';
+        }
+        
+        equalchar = strstr(buf2, "=");
 
-      if(foundchar != NULL)
-      {
-        buf2 = foundchar + 1;
-      }
-    }    
+        if(equalchar == NULL)
+        {
+          sprintf(message, "Equal sign not found in a column in a xlogfile: %s", buf2);
+          debug_write(message);
+          continue;
+        }
 
-    linenum++;
+        *equalchar = '\0';
+        value = equalchar + 1;
+        
+        if(strcmp(buf2, "version") == 0)
+        {
+          line->version = strdup(value);
+        }
+        else if (strcmp(buf2, "points") == 0)
+        {
+          line->points = atoll(value);
+        }
+        else if (strcmp(buf2, "deathdnum") == 0)
+        {
+          line->deathdnum = atoi(value);
+        }
+        else if (strcmp(buf2, "deathlev") == 0)
+        {
+          line->deathlev = atoi(value);
+        }
+        else if (strcmp(buf2, "maxlvl") == 0)
+        {
+          line->maxlvl = atoi(value);
+        }
+        else if (strcmp(buf2, "hp") == 0)
+        {
+          line->hp = atoi(value);
+        }
+        else if (strcmp(buf2, "maxhp") == 0)
+        {
+          line->maxhp = atoi(value);
+        }
+        else if (strcmp(buf2, "deaths") == 0)
+        {
+          line->deaths = atoi(value);
+        }
+        else if (strcmp(buf2, "deathdate") == 0)
+        {
+          line->deathdate = (time_t)atoll(value);
+        }
+        else if (strcmp(buf2, "birthdate") == 0)
+        {
+          line->birthdate = (time_t)atoll(value);
+        }
+        else if (strcmp(buf2, "uid") == 0)
+        {
+          line->uid = atoi(value);
+        }
+        else if (strcmp(buf2, "role") == 0)
+        {
+          line->role = strdup(value);
+        }
+        else if (strcmp(buf2, "race") == 0)
+        {
+          line->race = strdup(value);
+        }
+        else if (strcmp(buf2, "gender") == 0)
+        {
+          line->gender = strdup(value);
+        }
+        else if (strcmp(buf2, "align") == 0)
+        {
+          line->align = strdup(value);
+        }
+        else if (strcmp(buf2, "name") == 0)
+        {
+          line->name = strdup(value);
+        }
+        else if (strcmp(buf2, "death") == 0)
+        {
+          line->death = strdup(value);
+        }
+        else if (strcmp(buf2, "conduct") == 0)
+        {
+          line->conduct = atoi(value);
+        }
+        else if (strcmp(buf2, "turns") == 0)
+        {
+          line->turns = atol(value);
+        }
+        else if (strcmp(buf2, "achieve") == 0)
+        {
+          line->achieve = atoi(value);
+        }
+        else if (strcmp(buf2, "realtime") == 0)
+        {
+          line->realtime = atol(value);
+        }
+        else if (strcmp(buf2, "starttime") == 0)
+        {
+          line->starttime = (time_t) atoll(value);
+        }
+        else if (strcmp(buf2, "endtime") == 0)
+        {
+          line->endtime = (time_t) atoll(value);
+        }
+        else if (strcmp(buf2, "gender0") == 0)
+        {
+          line->gender0 = strdup(value);
+        }
+        else if (strcmp(buf2, "align0") == 0)
+        {
+          line->align0 = strdup(value);
+        }
+        else if (strcmp(buf2, "flags") == 0)
+        {
+          line->flags = atoi(value);
+        }
+        else if (strcmp(buf2, "difficulty") == 0)
+        {
+          line->difficulty = atoi(value);
+        }
+        else if (strcmp(buf2, "mode") == 0)
+        {
+          line->mode = strdup(value);
+        }
+        else
+        {
+          //Unknown column, skip
+        }
+
+        if(foundchar != NULL)
+        {
+          buf2 = foundchar + 1;
+        }
+      }    
+
+      linenum++;
+    }
+
+    fclose(filestream);
+    free(buf);
+
   }
-
-  fclose(filestream);
-  free(buf);
 
   int filter_mode = LOGGEDGAME_FILTER_MODE_NORMAL;
   int filter_death = LOGGEDGAME_FILTER_DEATH_ALL;
@@ -1913,111 +1918,39 @@ void latestgamesmenu(int gameid)
   int selected_sort_mode = LOGGEDGAME_SORTMODE_NONE;
   int display_mode = LOGGEDGAME_DISPLAY_MODE_LATESTGAMES;
   int filterlinesdone = 0, filterlinenum = 0;
-  int maxfilterlinenum = 100;
+  int maxfilterlinenum = 50;
   struct dg_xlogfile_data **filterlines = NULL;
 
+  struct dg_xlogfile_data **sortlines = NULL;
+  void *bigline = NULL;
+
+  int page = 0;
+  int pagesize = 10;
+  int pagenum = 1;
+  int resetpage = 1;
+  int firstitem = 0;
+  int lastitem = 0;
+  int lastpage = 0;
+  int donothing = 0;
+  int update_term_size = 0;
+  int old_maxshownlines = 0;
 
   while(1)
   {
+    if(donothing)
+    {
+      donothing = 0;
+      goto waitforcommand;
+    }
+
     term_resize_check();
     erase();
     drawbanner(&banner);
 
-    if(!filterlinesdone || filterlines != NULL || selected_filter_mode != filter_mode || selected_filter_death != filter_death)
-    {
-      if(filterlines) free(filterlines);
-      filterlinesdone = 0;      
-      filter_mode = selected_filter_mode;
-      filter_death = selected_filter_death;
-    }
-
-    if(!filterlinesdone)
-    {
-      filterlines = malloc(sizeof(size_t) * maxfilterlinenum);
-      filterlinenum = 0;
-
-      //Filtered lines
-      for(int i = 0; i < linenum; i++)
-      {
-        int right_mode_filter = 0;
-        int right_death_filter = 0;
-        if(filter_mode == LOGGEDGAME_FILTER_MODE_NORMAL && strcmp(lines[i]->mode, "normal") == 0)
-        {
-          right_mode_filter = 1;
-        }
-        else if (filter_mode == LOGGEDGAME_FILTER_MODE_EXPLORE && strcmp(lines[i]->mode, "explore") == 0)
-        {
-          right_mode_filter = 1;
-        }
-        else if(filter_mode == LOGGEDGAME_FILTER_MODE_WIZARD && strcmp(lines[i]->mode, "debug") == 0)
-        {
-          right_mode_filter = 1;
-        }
-        else if(filter_mode == LOGGEDGAME_FILTER_MODE_ALL)
-        {
-          right_mode_filter = 1;
-        }
-
-        if(filter_death == LOGGEDGAME_FILTER_DEATH_ASCENDED && strcmp(lines[i]->death, "ascended") == 0)
-        {
-          right_death_filter = 1;
-        }
-        else if(filter_death == LOGGEDGAME_FILTER_DEATH_ALL)
-        {
-          right_death_filter = 1;
-        }
-
-        if(right_mode_filter && right_death_filter)
-        {
-          if(filterlinenum == maxfilterlinenum)
-          {
-            //Autoincrease filterlines size
-            int newmaxfilterlinenum = 4 * maxfilterlinenum;
-            struct dg_xlogfile_data **filterlines2 = malloc(sizeof(size_t) * newmaxfilterlinenum);
-            memcpy(filterlines2, filterlines, sizeof(size_t) * maxfilterlinenum);
-            free(filterlines);
-            filterlines = filterlines2;
-            maxfilterlinenum = newmaxfilterlinenum;
-          }
-
-          filterlines[filterlinenum] = lines[i];
-
-          filterlinenum++;
-        }
-
-      }
-
-      filterlinesdone = 1;
-    }
-
-    struct dg_xlogfile_data **sortlines = NULL;
-    void* bigline = NULL;
-    if(selected_sort_mode != sort_mode)
-    {
-      //Do sort
-      sort_mode = selected_sort_mode;
-      if(sort_mode == LOGGEDGAME_SORTMODE_POINTS)
-      {
-        sortlines = calloc(filterlinenum, sizeof(size_t));
-        bigline = calloc(filterlinenum, sizeof(struct dg_xlogfile_data));
-
-        for(int i = 0; i < filterlinenum; i++)
-        {
-          //Set Pointer
-          sortlines[i] = bigline + sizeof(struct dg_xlogfile_data) * i;
-          //Copy contents
-          memcpy(bigline + sizeof(struct dg_xlogfile_data) * i, filterlines[i], sizeof(struct dg_xlogfile_data));
-        }
-
-        qsort(sortlines[0], filterlinenum, sizeof(struct dg_xlogfile_data), compare_xlogfile_data_points);
-
-        filterlines = sortlines;
-      }
-    }
-
     //Game Name
     
     int y_header = 1 + 2;
+    int y_row = 0;
 
     if (game_chosen)
     {
@@ -2030,7 +1963,7 @@ void latestgamesmenu(int gameid)
       }
     }
 
-    //Header Row
+    //Display Mode Header
     y_header++;
     int x_col = 1;
     switch(display_mode)
@@ -2048,189 +1981,395 @@ void latestgamesmenu(int gameid)
         mvaddstr(y_header, x_col, "Error");
     }
 
-    y_header += 2;
-    
-    struct dg_loggedgames_cols **columns = globalconfig_loggedgames_columns();
-
-    for(int col = 0; col < NUM_LOGGEDGAME_COLS; col++)
+    if(linenum > 0)
     {
-      int x = columns[col]->x;
-      mvaddstr(y_header, x, columns[col]->colname);
-    }
+      if(resetpage)
+      {
+        page = 0;
 
+        if (!filterlinesdone || filterlines == NULL || selected_filter_mode != filter_mode || selected_filter_death != filter_death || selected_sort_mode != sort_mode)
+        {
+          if (bigline != NULL)
+          {
+            free(bigline);
+            bigline = NULL;
+          }
+          int filterlines_are_also_sortlines = (sortlines == filterlines);
+          if (sortlines != NULL)
+          {
+            free(sortlines);
+            sortlines = NULL;
+          }
+          if(filterlines_are_also_sortlines)
+          {
+            filterlines = NULL;
+          }
+          else
+          {
+            if (filterlines != NULL)
+            {
+              free(filterlines);
+              filterlines = NULL;
+            }          
+          }
+          
+          filterlinesdone = 0;
+          filter_mode = selected_filter_mode;
+          filter_death = selected_filter_death;
+        }
 
-    // Row Lines
+        if (!filterlinesdone)
+        {
+          filterlines = malloc(sizeof(size_t) * maxfilterlinenum);
+          filterlinenum = 0;
 
-    int y_row = y_header + 1;
-    int maxshownlines = filterlinenum;
-    int maxtablelines = dgl_local_LINES - 14;
-    if(maxshownlines > maxtablelines)
-    {
-      maxshownlines = maxtablelines;
-    }
-    if(maxshownlines > filterlinenum)
-    {
-      maxshownlines = filterlinenum;
-    }
+          //Filtered lines
+          for (int i = 0; i < linenum; i++)
+          {
+            int right_mode_filter = 0;
+            int right_death_filter = 0;
+            if (filter_mode == LOGGEDGAME_FILTER_MODE_NORMAL && strcmp(lines[i]->mode, "normal") == 0)
+            {
+              right_mode_filter = 1;
+            }
+            else if (filter_mode == LOGGEDGAME_FILTER_MODE_EXPLORE && strcmp(lines[i]->mode, "explore") == 0)
+            {
+              right_mode_filter = 1;
+            }
+            else if (filter_mode == LOGGEDGAME_FILTER_MODE_WIZARD && strcmp(lines[i]->mode, "debug") == 0)
+            {
+              right_mode_filter = 1;
+            }
+            else if (filter_mode == LOGGEDGAME_FILTER_MODE_ALL)
+            {
+              right_mode_filter = 1;
+            }
 
-    for(int i = 0; i < maxshownlines; i++)
-    {
-      curline = filterlines[filterlinenum - 1 - i];
+            if (filter_death == LOGGEDGAME_FILTER_DEATH_ASCENDED && strcmp(lines[i]->death, "ascended") == 0)
+            {
+              right_death_filter = 1;
+            }
+            else if (filter_death == LOGGEDGAME_FILTER_DEATH_ALL)
+            {
+              right_death_filter = 1;
+            }
+
+            if (right_mode_filter && right_death_filter)
+            {
+              if (filterlinenum == maxfilterlinenum)
+              {
+                //Autoincrease filterlines size
+                int newmaxfilterlinenum = 4 * maxfilterlinenum;
+                struct dg_xlogfile_data **filterlines2 = malloc(sizeof(size_t) * newmaxfilterlinenum);
+                memcpy(filterlines2, filterlines, sizeof(size_t) * maxfilterlinenum);
+                free(filterlines);
+                filterlines = filterlines2;
+                maxfilterlinenum = newmaxfilterlinenum;
+              }
+
+              filterlines[filterlinenum] = lines[i];
+
+              filterlinenum++;
+            }
+          }
+
+          filterlinesdone = 1;
+        }
+
+        if (selected_sort_mode != sort_mode)
+        {
+          //Do sort
+          sort_mode = selected_sort_mode;
+          if (sort_mode == LOGGEDGAME_SORTMODE_POINTS)
+          {
+            sortlines = calloc(filterlinenum, sizeof(size_t));
+            bigline = calloc(filterlinenum, sizeof(struct dg_xlogfile_data));
+
+            for (int i = 0; i < filterlinenum; i++)
+            {
+              //Set Pointer
+              sortlines[i] = bigline + sizeof(struct dg_xlogfile_data) * i;
+              //Copy contents
+              memcpy(bigline + sizeof(struct dg_xlogfile_data) * i, filterlines[i], sizeof(struct dg_xlogfile_data));
+            }
+
+            qsort(sortlines[0], filterlinenum, sizeof(struct dg_xlogfile_data), compare_xlogfile_data_points);
+
+            filterlines = sortlines;
+          }
+        }
+      }
+      else
+      {
+        //Do paging
+      }
+
+      
+      //Header Row
+      y_header += 2;
+      
+      struct dg_loggedgames_cols **columns = globalconfig_loggedgames_columns();
+
       for(int col = 0; col < NUM_LOGGEDGAME_COLS; col++)
       {
         int x = columns[col]->x;
-        char* value;
-        int freevalue = 0;
-        switch(columns[col]->coltype)
+        mvaddstr(y_header, x, columns[col]->colname);
+      }
+
+
+      // Row Lines
+      
+      y_row = y_header + 1;
+      int maxshownlines = filterlinenum;
+      int maxtablelines = dgl_local_LINES - 17;
+      struct dg_xlogfile_data *curline = NULL;
+
+      if(maxshownlines > maxtablelines)
+      {
+        maxshownlines = maxtablelines;
+      }
+      if(maxshownlines > filterlinenum)
+      {
+        maxshownlines = filterlinenum;
+      }
+
+      if(resetpage || (update_term_size && maxshownlines != old_maxshownlines))
+      {
+        pagesize = maxshownlines;
+        pagenum = 1 + (filterlinenum - 1) / pagesize;
+        firstitem = 0;
+        lastitem = pagesize - 1;
+        lastpage = pagenum - 1;
+        update_term_size = 0;
+      }
+      else
+      {
+        //Do paging
+        firstitem = page * pagesize;
+        lastitem = firstitem + pagesize - 1;        
+      }
+      
+      if(lastitem >= filterlinenum)
+      {
+        lastitem = filterlinenum - 1;
+      }
+
+      old_maxshownlines = maxshownlines;
+      resetpage = 0;
+
+      for(int i = firstitem; i <= lastitem; i++)
+      {
+        curline = filterlines[filterlinenum - 1 - i];
+        for(int col = 0; col < NUM_LOGGEDGAME_COLS; col++)
         {
-          case LOGGEDGAME_COL_RANK:
-          value = malloc(10 * sizeof(char));
-          sprintf(value, "%d", i + 1);
-          freevalue = 1;
-          break;
-
-          case LOGGEDGAME_COL_NAME:
-          value = curline->name;
-          break;
-
-          case LOGGEDGAME_COL_ROLE:
-          value = curline->role;
-          break;
-
-          case LOGGEDGAME_COL_RACE:
-          value = curline->race;
-          break;
-
-          case LOGGEDGAME_COL_GENDER:
-          value = malloc(2 * sizeof(char));
-          strncpy(value, curline->gender, 1);
-          value[1] = '\0';
-          freevalue = 1;
-          break;
-
-          case LOGGEDGAME_COL_ALIGNMENT:
-          value = malloc(2 * sizeof(char));
-          strncpy(value, curline->align, 1);
-          value[1] = '\0';
-          freevalue = 1;
-          break;
-
-          case LOGGEDGAME_COL_DIFFICULTY:
-          switch(curline->difficulty)
+          int x = columns[col]->x;
+          char* value;
+          int freevalue = 0;
+          int donotprintvalue = 0;
+          switch(columns[col]->coltype)
           {
-            case -2:
-            value = "E";
+            case LOGGEDGAME_COL_RANK:
+            value = malloc(10 * sizeof(char));
+            sprintf(value, "%d", i + 1);
+            freevalue = 1;
             break;
 
-            case -1:
-            value = "e";
+            case LOGGEDGAME_COL_NAME:
+            value = curline->name;
             break;
 
-            case 0:
-            value = "n";
-            break;
-          
-            case 1:
-            value = "h";
+            case LOGGEDGAME_COL_ROLE:
+            value = curline->role;
             break;
 
-            case 2:
-            value = "H";
+            case LOGGEDGAME_COL_RACE:
+            value = curline->race;
+            break;
+
+            case LOGGEDGAME_COL_GENDER:
+            value = malloc(2 * sizeof(char));
+            strncpy(value, curline->gender, 1);
+            value[1] = '\0';
+            freevalue = 1;
+            break;
+
+            case LOGGEDGAME_COL_ALIGNMENT:
+            value = malloc(2 * sizeof(char));
+            strncpy(value, curline->align, 1);
+            value[1] = '\0';
+            freevalue = 1;
+            break;
+
+            case LOGGEDGAME_COL_DIFFICULTY:
+            switch(curline->difficulty)
+            {
+              case -2:
+              value = "E";
+              break;
+
+              case -1:
+              value = "e";
+              break;
+
+              case 0:
+              value = "n";
+              break;
+            
+              case 1:
+              value = "h";
+              break;
+
+              case 2:
+              value = "H";
+              break;
+
+              default:
+              value = "?";
+              break;
+            }
+            break;
+
+            case LOGGEDGAME_COL_POINTS:
+              value = insert_commas_ll(curline->points);
+              freevalue = 1;
+            break;
+
+            case LOGGEDGAME_COL_TURNS:
+              value = malloc(8 * sizeof(char));
+              sprintf(value, "%d", curline->turns);
+              freevalue = 1;
+            break;
+
+            case LOGGEDGAME_COL_TIME:
+              value = calloc(20, sizeof(char));
+              struct tm *timeinfo = malloc(sizeof(struct tm));
+              time_t time = (time_t)curline->endtime;
+              localtime_r(&time, timeinfo);
+
+              strftime(value, 20 * sizeof(char), "%Y-%m-%d %H:%M", timeinfo);
+
+              free(timeinfo);
+              freevalue = 1;
+            break;
+
+            case LOGGEDGAME_COL_DEATH:
+              ;
+              int maxwidth = dgl_local_COLS - x;
+              if(maxwidth > 0)
+              {
+                value = calloc(maxwidth + 1, sizeof(char));
+                strncpy(value, curline->death, maxwidth);
+                freevalue = 1;
+              }
+              else
+              {
+                donotprintvalue = 1;
+              }
+              
             break;
 
             default:
-            value = "?";
+              donotprintvalue = 1;
             break;
           }
-          break;
-
-          case LOGGEDGAME_COL_POINTS:
-            value = insert_commas_ll(curline->points);
-            freevalue = 1;
-          break;
-
-          case LOGGEDGAME_COL_TURNS:
-            value = malloc(8 * sizeof(char));
-            sprintf(value, "%d", curline->turns);
-            freevalue = 1;
-          break;
-
-          case LOGGEDGAME_COL_TIME:
-            value = malloc(20 * sizeof(char));
-            struct tm *timeinfo = malloc(sizeof(struct tm));
-            time_t time = (time_t)curline->endtime;
-            localtime_r(&time, timeinfo);
-
-            strftime(value, 20 * sizeof(char), "%Y-%m-%d %H:%M", timeinfo);
-
-            free(timeinfo);
-            freevalue = 1;
-          break;
-
-          case LOGGEDGAME_COL_DEATH:
-            ;
-            int maxwidth = dgl_local_COLS - x;
-            value = malloc((maxwidth + 1) * sizeof(char));
-            strncpy(value, curline->death, maxwidth);
-            freevalue = 1;
-          break;
-
-          default:
-            value = malloc(sizeof(char));
-            value[0] = '\0';
-          break;
+          if(donotprintvalue == 0)
+          {
+            mvaddstr(y_row, x, value);
+          }
+          if(freevalue)
+          {
+            free(value);
+          }
         }
-        mvaddstr(y_row, x, value);
-        if(freevalue)
-        {
-          free(value);
-        }
+        
+        y_row++;
       }
-      
+
+      if(pagenum > 1)
+      {
+        char pager[80];
+        sprintf(pager, "(%d-%d of %d)", firstitem + 1, lastitem + 1, filterlinenum);
+        mvaddstr(y_row, 1, pager);
+        y_row++;
+      }
+    }
+    else 
+    {
+      y_row = y_header + 2;
+      mvaddstr(y_row, 1, "No games yet");
       y_row++;
     }
 
-    if(sortlines != NULL)
-    {
-      free(bigline);
-      free(sortlines);
-      filterlines = NULL;
-      filterlinesdone = 0;
-    }
+    int y_footer = dgl_local_LINES - 8;
+    mvaddstr(y_footer, 1, "g) Latest games  a) Latest ascension  t) Top scores");
+    y_footer += 2;
+    mvaddstr(y_footer, 1, "Browse with arrow keys  r) Resize to terminal");
+    y_footer += 2;
+    mvaddstr(y_footer, 1, "q) Return");
+    y_footer += 2;
+    mvaddstr(y_footer, 1, "=>");
+    mvprintw(y_footer, 3, "");
 
-    y_row++;
-    mvaddstr(y_row, 1, "g) Latest games  a) Latest ascension  t) Top scores");
-    y_row++;
-    mvaddstr(y_row, 1, "r) Resize to terminal");
-    y_row++;
-    mvaddstr(y_row, 1, "q) Return");
-    y_row += 2;
-    mvaddstr(y_row, 1, "=>");
-    mvprintw(y_row, 3, "");
-    // refresh();
-
+waitforcommand:
+    ;
     int menuchoice = 0;
     switch ((menuchoice = dgl_getch()))
     {
+      case 'R':
       case 'r':
+        //signal(SIGWINCH, sigwinch_func);
+        update_term_size = 1;
+        resetpage = 0;
         break;
+      case 'A':
       case 'a':
         display_mode = LOGGEDGAME_DISPLAY_MODE_LATESTASCENSION;
         selected_sort_mode = LOGGEDGAME_SORTMODE_NONE;
         selected_filter_mode = LOGGEDGAME_FILTER_MODE_NORMAL;
         selected_filter_death = LOGGEDGAME_FILTER_DEATH_ASCENDED;
+        resetpage=1;
         break;
+      case 'G':
       case 'g':
         display_mode = LOGGEDGAME_DISPLAY_MODE_LATESTGAMES;
         selected_sort_mode = LOGGEDGAME_SORTMODE_NONE;
         selected_filter_mode = LOGGEDGAME_FILTER_MODE_NORMAL;
         selected_filter_death = LOGGEDGAME_FILTER_DEATH_ALL;
+        resetpage=1;
         break;
+      case 'T':
       case 't':
         display_mode = LOGGEDGAME_DISPLAY_MODE_TOPSCORES;
         selected_sort_mode = LOGGEDGAME_SORTMODE_POINTS;
         selected_filter_mode = LOGGEDGAME_FILTER_MODE_NORMAL;
         selected_filter_death = LOGGEDGAME_FILTER_DEATH_ALL;
+        resetpage=1;
+        break;
+      case KEY_DOWN:
+      case KEY_RIGHT:
+      case KEY_NPAGE:
+        if(page < lastpage)
+        {
+          page++;
+          resetpage=0;
+        }
+        else
+        {
+          donothing = 1;
+        }
+        break;
+      case KEY_UP:
+      case KEY_LEFT:
+      case KEY_PPAGE:
+        if(page > 0)
+        {
+          page--;
+          resetpage=0;
+        }
+        else 
+        {
+          donothing = 1;
+        }
         break;
       case ERR:
       case 'q':
@@ -2238,7 +2377,7 @@ void latestgamesmenu(int gameid)
       case '\x1b':
         goto exitloggedgamesmenu;
       default:
-        //Do nothing
+        donothing = 1;
         break;
     }
   }
@@ -2252,7 +2391,20 @@ exitloggedgamesmenu:
   }
 
   free(lines);
-  free(filterlines);
+
+  if (bigline != NULL)
+  {
+    free(bigline);
+  }
+  int filterlines_are_also_sortlines = (sortlines == filterlines);
+  if (sortlines != NULL)
+  {
+    free(sortlines);
+  }
+  if (!filterlines_are_also_sortlines && filterlines != NULL)
+  {
+    free(filterlines);
+  }
 }
 
 int compare_xlogfile_data_points(const void *s1, const void *s2)
@@ -2300,7 +2452,7 @@ void free_dg_xlogfile_data(struct dg_xlogfile_data *line)
 }
 
 char* insert_commas_ll (long long n) {
-    char* buf = malloc(20 * sizeof(char));
+    char* buf = calloc(20, sizeof(char));
     sprintf(buf, "%d", n);
     char* result = insert_commas(buf);
     free(buf);
@@ -2310,8 +2462,7 @@ char* insert_commas_ll (long long n) {
 char* insert_commas (char* src) {
     int n_length = strlen(src);
     int comma_number = (n_length - 1) / 3;
-    char* buf2 = malloc((n_length + comma_number + 1) * sizeof(char));
-    buf2[n_length + comma_number] = '\0';
+    char* buf2 = calloc(n_length + comma_number + 1, sizeof(char));
     int cur_comma_count = 0;
     int char_count = 0;
 
@@ -2319,10 +2470,12 @@ char* insert_commas (char* src) {
     {
       if(char_count % 3 == 0 && char_count > 0)
       {
-        buf2[i-cur_comma_count] = ',';
+        buf2[i + comma_number - cur_comma_count] = ',';
         cur_comma_count++;
+        char_count++;
       }
-      buf2[i-cur_comma_count] = src[i];
+      buf2[i + comma_number -cur_comma_count] = src[i];
+      char_count++;
     }
     return buf2;
 }
