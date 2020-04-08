@@ -238,7 +238,8 @@ struct dg_watchcols {
 
 typedef enum
 {
-    LOGGEDGAME_COL_NAME = 0,
+    LOGGEDGAME_COL_RANK = 0,
+    LOGGEDGAME_COL_NAME,
     LOGGEDGAME_COL_ROLE,
     LOGGEDGAME_COL_RACE,
     LOGGEDGAME_COL_GENDER,
@@ -253,19 +254,30 @@ typedef enum
 
 typedef enum
 {
-    TOPGAME_COL_RANK = 0,
-    TOPGAME_COL_POINTS,
-    TOPGAME_COL_NAME,
-    TOPGAME_COL_ROLE,
-    TOPGAME_COL_RACE,
-    TOPGAME_COL_GENDER,
-    TOPGAME_COL_ALIGNMENT,
-    TOPGAME_COL_DIFFICULTY,
-    TOPGAME_COL_TURNS,
-    TOPGAME_COL_DATE,
-    TOPGAME_COL_DEATH,
-    NUM_TOPGAME_COLS
-} dg_topgame_coltypes;
+    LOGGEDGAME_FILTER_MODE_ALL = 0,
+    LOGGEDGAME_FILTER_MODE_NORMAL = 1,
+    LOGGEDGAME_FILTER_MODE_EXPLORE = 2, 
+    LOGGEDGAME_FILTER_MODE_WIZARD = 4
+} dg_loggedgame_mode_filter;
+
+typedef enum
+{
+    LOGGEDGAME_FILTER_DEATH_ALL = 0,
+    LOGGEDGAME_FILTER_DEATH_ASCENDED = 1
+} dg_loggedgame_death_filter;
+
+typedef enum
+{
+    LOGGEDGAME_SORTMODE_NONE = 0,
+    LOGGEDGAME_SORTMODE_POINTS = 1
+} dg_loggedgame_sortmode;
+
+typedef enum
+{
+    LOGGEDGAME_DISPLAY_MODE_LATESTGAMES = 0,
+    LOGGEDGAME_DISPLAY_MODE_LATESTASCENSION,
+    LOGGEDGAME_DISPLAY_MODE_TOPSCORES
+} dg_loggedgame_display_mode;
 
 struct dg_loggedgames_cols {
     int coltype;
@@ -274,14 +286,10 @@ struct dg_loggedgames_cols {
     char *fmt;
 };
 
-struct dg_topgames_cols {
-    int coltype;
-    int x;
-    char *colname;
-    char *fmt;
-};
 
-struct dg_xlogfile_data {
+struct dg_xlogfile_data 
+{
+    int rownumber;
     char *version;
     long long points;
     int deathdnum;
@@ -428,6 +436,7 @@ extern void set_xlogfile_defaults(struct dg_xlogfile_data *line);
 extern char* insert_commas_ll (long long n);
 extern char* insert_commas (char* src);
 extern void free_dg_xlogfile_data(struct dg_xlogfile_data *line);
+extern int compare_xlogfile_data_points(const void *s1, const void *s2);
 
 extern void change_email(void);
 extern int changepw(int dowrite);

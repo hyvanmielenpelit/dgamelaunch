@@ -125,31 +125,18 @@ static struct dg_watchcols default_watchcols[] = {
 #endif
 };
 
-static struct dg_topgames_cols default_topgames_cols[] = {
-    {TOPGAME_COL_RANK, 1, "Rank", "%-3s)"},
-    {TOPGAME_COL_POINTS, 5, "Score", "%-11s"},
-    {TOPGAME_COL_NAME, 17, "Name", "%-10s"},
-    {TOPGAME_COL_ROLE, 28, "Rol", "%-3s"},
-    {TOPGAME_COL_RACE, 32, "Rac", "%-3s"},
-    {TOPGAME_COL_GENDER, 36, "G", "%s"},
-    {TOPGAME_COL_ALIGNMENT, 38, "A", "%s"},
-    {TOPGAME_COL_DIFFICULTY, 40, "D", "%s"},
-    {TOPGAME_COL_TURNS, 42, "Turns", "%s"},
-    {TOPGAME_COL_DATE, 49, "Date", "%s"},
-    {TOPGAME_COL_DEATH, 60, "Death", "%s"}
-};
-
 static struct dg_loggedgames_cols default_loggedgames_cols[] = {
-    {LOGGEDGAME_COL_NAME, 1, "Name", "%s)"},
-    {LOGGEDGAME_COL_ROLE, 12, "Rol", "%s"},
-    {LOGGEDGAME_COL_RACE, 16, "Rac", "%s"},
-    {LOGGEDGAME_COL_GENDER, 20, "G", "%s"},
-    {LOGGEDGAME_COL_ALIGNMENT, 22, "A", "%s"},
-    {LOGGEDGAME_COL_DIFFICULTY, 24, "D", "%s"},
-    {LOGGEDGAME_COL_POINTS, 26, "Score", "%-10s"},
-    {LOGGEDGAME_COL_TURNS, 38, "Turns", "%-11s"},
-    {LOGGEDGAME_COL_TIME, 45, "Time", "%s"},
-    {LOGGEDGAME_COL_DEATH, 62, "Death", "%s"}    
+    {LOGGEDGAME_COL_RANK, 1, "Rank", "%-4s)"},
+    {LOGGEDGAME_COL_NAME, 6, "Name", "%s)"},
+    {LOGGEDGAME_COL_ROLE, 17, "Rol", "%s"},
+    {LOGGEDGAME_COL_RACE, 21, "Rac", "%s"},
+    {LOGGEDGAME_COL_GENDER, 25, "G", "%s"},
+    {LOGGEDGAME_COL_ALIGNMENT, 27, "A", "%s"},
+    {LOGGEDGAME_COL_DIFFICULTY, 29, "D", "%s"},
+    {LOGGEDGAME_COL_POINTS, 31, "Score", "%-11s"},
+    {LOGGEDGAME_COL_TURNS, 43, "Turns", "%-6s"},
+    {LOGGEDGAME_COL_TIME, 50, "Time", "%s"},
+    {LOGGEDGAME_COL_DEATH, 67, "Death", "%s"}    
 };
 
 int color_remap[16] = {
@@ -1667,11 +1654,11 @@ inprogressdisplay (int gameid)
 void set_xlogfile_defaults(struct dg_xlogfile_data *line)
 {
   line->achieve = 0;
-  line->align0 = "";
-  line->align = "";
+  line->align0 = NULL;
+  line->align = NULL;
   line->birthdate = 0;
   line->conduct = 0;
-  line->death = "";
+  line->death = NULL;
   line->deathdate = 0;
   line->deathdnum = 0;
   line->deathlev = 0;
@@ -1679,21 +1666,22 @@ void set_xlogfile_defaults(struct dg_xlogfile_data *line)
   line->difficulty = 0;
   line->endtime = 0;
   line->flags = 0;
-  line->gender0 = "";
-  line->gender = "";
+  line->gender0 = NULL;
+  line->gender = NULL;
   line->hp = 0;
   line->maxhp = 0;
   line->maxlvl = 0;
-  line->mode = "";
-  line->name = "";
+  line->mode = NULL;
+  line->name = NULL;
   line->points = 0;
-  line->race = "";
+  line->race = NULL;
   line->realtime = 0;
-  line->role = "";
+  line->role = NULL;
+  line->rownumber = 0;
   line->starttime = 0;
   line->turns = 0;
   line->uid = 0;
-  line->version = "";
+  line->version = NULL;
 }
 
 /* ************************************************************* */
@@ -1709,6 +1697,7 @@ void latestgamesmenu(int gameid)
 
   sprintf(filename, "%s%s", myconfig[gameid]->logdir, "xlogfile");
   FILE* filestream = fopen(filename, "r");
+  
   if(filestream == NULL)
   {
     char message[600];
@@ -1718,11 +1707,9 @@ void latestgamesmenu(int gameid)
     return;
   }
 
-  term_resize_check();
-  erase();
-  drawbanner(&banner);
-
-  int maxlinenum = 10000;
+  fseek(filestream, 0, 0);
+  
+  int maxlinenum = 50;
   int linenum = 0;
   int linelength = 0;
   int finishafterthiscolumn = 0;
@@ -1731,22 +1718,36 @@ void latestgamesmenu(int gameid)
   struct dg_xlogfile_data *curline = NULL;
 
   char message[256];
-  char buf[DGL_XLOGFILE_LINELEN];
+  char *buf = malloc(DGL_XLOGFILE_LINELEN * sizeof(char));
   char *buf2 = buf;
   char *foundchar, *equalchar, *value;
   memset(buf, 0, DGL_XLOGFILE_LINELEN);
 
-  while(fgets(buf2, DGL_XLOGFILE_LINELEN, filestream) != NULL)
+  while(fgets(buf, DGL_XLOGFILE_LINELEN, filestream) != NULL)
   {
-    finishafterthiscolumn = 0;
+    buf2 = buf;
 
+    if(linenum == maxlinenum)
+    {
+      //Autoincrease lines size
+      int newmaxlinenum = 4 * maxlinenum;
+      struct dg_xlogfile_data **lines2 = malloc(sizeof(size_t) * newmaxlinenum);
+      memcpy(lines2, lines, sizeof(size_t) * maxlinenum);
+      free(lines);
+      lines = lines2;
+      maxlinenum = newmaxlinenum;
+    }
+
+    finishafterthiscolumn = 0;
+  
     struct dg_xlogfile_data *line = malloc(sizeof(struct dg_xlogfile_data));
 
     set_xlogfile_defaults(line);
     
-    curline = line;
     lines[linenum] = line;
     linelength = strlen(buf2);
+
+    line->rownumber = linenum + 1;
 
     while(finishafterthiscolumn == 0)
     {
@@ -1898,159 +1899,351 @@ void latestgamesmenu(int gameid)
       }
     }    
 
-    curline++;
     linenum++;
   }
 
   fclose(filestream);
+  free(buf);
 
-  //Game Name
-  
-  int y_header = 1 + 2;
+  int filter_mode = LOGGEDGAME_FILTER_MODE_NORMAL;
+  int filter_death = LOGGEDGAME_FILTER_DEATH_ALL;
+  int selected_filter_mode = LOGGEDGAME_FILTER_MODE_NORMAL;
+  int selected_filter_death = LOGGEDGAME_FILTER_DEATH_ALL;
+  int sort_mode = LOGGEDGAME_SORTMODE_NONE;
+  int selected_sort_mode = LOGGEDGAME_SORTMODE_NONE;
+  int display_mode = LOGGEDGAME_DISPLAY_MODE_LATESTGAMES;
+  int filterlinesdone = 0, filterlinenum = 0;
+  int maxfilterlinenum = 100;
+  struct dg_xlogfile_data **filterlines = NULL;
 
-  if (game_chosen)
+
+  while(1)
   {
-    for (int userchoice = 0; userchoice < num_games; userchoice++)
+    term_resize_check();
+    erase();
+    drawbanner(&banner);
+
+    if(!filterlinesdone || filterlines != NULL || selected_filter_mode != filter_mode || selected_filter_death != filter_death)
     {
-      if (strcmp(myconfig[userchoice]->shortname, chosengamename) == 0)
+      if(filterlines) free(filterlines);
+      filterlinesdone = 0;      
+      filter_mode = selected_filter_mode;
+      filter_death = selected_filter_death;
+    }
+
+    if(!filterlinesdone)
+    {
+      filterlines = malloc(sizeof(size_t) * maxfilterlinenum);
+      filterlinenum = 0;
+
+      //Filtered lines
+      for(int i = 0; i < linenum; i++)
       {
-          mvaddstr(y_header, 1, myconfig[userchoice]->game_name);
+        int right_mode_filter = 0;
+        int right_death_filter = 0;
+        if(filter_mode == LOGGEDGAME_FILTER_MODE_NORMAL && strcmp(lines[i]->mode, "normal") == 0)
+        {
+          right_mode_filter = 1;
+        }
+        else if (filter_mode == LOGGEDGAME_FILTER_MODE_EXPLORE && strcmp(lines[i]->mode, "explore") == 0)
+        {
+          right_mode_filter = 1;
+        }
+        else if(filter_mode == LOGGEDGAME_FILTER_MODE_WIZARD && strcmp(lines[i]->mode, "debug") == 0)
+        {
+          right_mode_filter = 1;
+        }
+        else if(filter_mode == LOGGEDGAME_FILTER_MODE_ALL)
+        {
+          right_mode_filter = 1;
+        }
+
+        if(filter_death == LOGGEDGAME_FILTER_DEATH_ASCENDED && strcmp(lines[i]->death, "ascended") == 0)
+        {
+          right_death_filter = 1;
+        }
+        else if(filter_death == LOGGEDGAME_FILTER_DEATH_ALL)
+        {
+          right_death_filter = 1;
+        }
+
+        if(right_mode_filter && right_death_filter)
+        {
+          if(filterlinenum == maxfilterlinenum)
+          {
+            //Autoincrease filterlines size
+            int newmaxfilterlinenum = 4 * maxfilterlinenum;
+            struct dg_xlogfile_data **filterlines2 = malloc(sizeof(size_t) * newmaxfilterlinenum);
+            memcpy(filterlines2, filterlines, sizeof(size_t) * maxfilterlinenum);
+            free(filterlines);
+            filterlines = filterlines2;
+            maxfilterlinenum = newmaxfilterlinenum;
+          }
+
+          filterlines[filterlinenum] = lines[i];
+
+          filterlinenum++;
+        }
+
+      }
+
+      filterlinesdone = 1;
+    }
+
+    struct dg_xlogfile_data **sortlines = NULL;
+    void* bigline = NULL;
+    if(selected_sort_mode != sort_mode)
+    {
+      //Do sort
+      sort_mode = selected_sort_mode;
+      if(sort_mode == LOGGEDGAME_SORTMODE_POINTS)
+      {
+        sortlines = calloc(filterlinenum, sizeof(size_t));
+        bigline = calloc(filterlinenum, sizeof(struct dg_xlogfile_data));
+
+        for(int i = 0; i < filterlinenum; i++)
+        {
+          //Set Pointer
+          sortlines[i] = bigline + sizeof(struct dg_xlogfile_data) * i;
+          //Copy contents
+          memcpy(bigline + sizeof(struct dg_xlogfile_data) * i, filterlines[i], sizeof(struct dg_xlogfile_data));
+        }
+
+        qsort(sortlines[0], filterlinenum, sizeof(struct dg_xlogfile_data), compare_xlogfile_data_points);
+
+        filterlines = sortlines;
       }
     }
-  }
 
-  //Header Row
+    //Game Name
+    
+    int y_header = 1 + 2;
 
-  y_header += 2;
-  
-  struct dg_loggedgames_cols **columns = globalconfig_loggedgames_columns();
+    if (game_chosen)
+    {
+      for (int userchoice = 0; userchoice < num_games; userchoice++)
+      {
+        if (strcmp(myconfig[userchoice]->shortname, chosengamename) == 0)
+        {
+            mvaddstr(y_header, 1, myconfig[userchoice]->game_name);
+        }
+      }
+    }
 
-  for(int col = 0; col < NUM_LOGGEDGAME_COLS; col++)
-  {
-    int x = columns[col]->x;
-    mvaddstr(y_header, x, columns[col]->colname);
-  }
+    //Header Row
+    y_header++;
+    int x_col = 1;
+    switch(display_mode)
+    {
+      case LOGGEDGAME_DISPLAY_MODE_LATESTGAMES:
+        mvaddstr(y_header, x_col, "Latest Games");
+        break;
+      case LOGGEDGAME_DISPLAY_MODE_LATESTASCENSION:
+        mvaddstr(y_header, x_col, "Latest Ascensions");
+        break;
+      case LOGGEDGAME_DISPLAY_MODE_TOPSCORES:
+        mvaddstr(y_header, x_col, "Top Scores");
+        break;
+      default:
+        mvaddstr(y_header, x_col, "Error");
+    }
 
+    y_header += 2;
+    
+    struct dg_loggedgames_cols **columns = globalconfig_loggedgames_columns();
 
-  // Row Lines
-
-  int y_row = y_header + 1;
-  int maxshownlines = linenum;
-  if(maxshownlines > 10)
-  {
-    maxshownlines = 10;
-  }
-
-  for(int i = 0; i < maxshownlines; i++)
-  {
-    curline = lines[linenum - 1 - i];
     for(int col = 0; col < NUM_LOGGEDGAME_COLS; col++)
     {
       int x = columns[col]->x;
-      char* value;
-      int freevalue = 0;
-      switch(columns[col]->coltype)
+      mvaddstr(y_header, x, columns[col]->colname);
+    }
+
+
+    // Row Lines
+
+    int y_row = y_header + 1;
+    int maxshownlines = filterlinenum;
+    int maxtablelines = dgl_local_LINES - 14;
+    if(maxshownlines > maxtablelines)
+    {
+      maxshownlines = maxtablelines;
+    }
+    if(maxshownlines > filterlinenum)
+    {
+      maxshownlines = filterlinenum;
+    }
+
+    for(int i = 0; i < maxshownlines; i++)
+    {
+      curline = filterlines[filterlinenum - 1 - i];
+      for(int col = 0; col < NUM_LOGGEDGAME_COLS; col++)
       {
-        case LOGGEDGAME_COL_NAME:
-        value = curline->name;
-        break;
-
-        case LOGGEDGAME_COL_ROLE:
-        value = curline->role;
-        break;
-
-        case LOGGEDGAME_COL_RACE:
-        value = curline->race;
-        break;
-
-        case LOGGEDGAME_COL_GENDER:
-        value = malloc(2 * sizeof(char));
-        strncpy(value, curline->gender, 1);
-        value[1] = '\0';
-        freevalue = 1;
-        break;
-
-        case LOGGEDGAME_COL_ALIGNMENT:
-        value = malloc(2 * sizeof(char));
-        strncpy(value, curline->align, 1);
-        value[1] = '\0';
-        freevalue = 1;
-        break;
-
-        case LOGGEDGAME_COL_DIFFICULTY:
-        switch(curline->difficulty)
+        int x = columns[col]->x;
+        char* value;
+        int freevalue = 0;
+        switch(columns[col]->coltype)
         {
-          case -2:
-          value = "E";
+          case LOGGEDGAME_COL_RANK:
+          value = malloc(10 * sizeof(char));
+          sprintf(value, "%d", i + 1);
+          freevalue = 1;
           break;
 
-          case -1:
-          value = "e";
+          case LOGGEDGAME_COL_NAME:
+          value = curline->name;
           break;
 
-          case 0:
-          value = "N";
-          break;
-        
-          case 1:
-          value = "h";
+          case LOGGEDGAME_COL_ROLE:
+          value = curline->role;
           break;
 
-          case 2:
-          value = "H";
+          case LOGGEDGAME_COL_RACE:
+          value = curline->race;
+          break;
+
+          case LOGGEDGAME_COL_GENDER:
+          value = malloc(2 * sizeof(char));
+          strncpy(value, curline->gender, 1);
+          value[1] = '\0';
+          freevalue = 1;
+          break;
+
+          case LOGGEDGAME_COL_ALIGNMENT:
+          value = malloc(2 * sizeof(char));
+          strncpy(value, curline->align, 1);
+          value[1] = '\0';
+          freevalue = 1;
+          break;
+
+          case LOGGEDGAME_COL_DIFFICULTY:
+          switch(curline->difficulty)
+          {
+            case -2:
+            value = "E";
+            break;
+
+            case -1:
+            value = "e";
+            break;
+
+            case 0:
+            value = "n";
+            break;
+          
+            case 1:
+            value = "h";
+            break;
+
+            case 2:
+            value = "H";
+            break;
+
+            default:
+            value = "?";
+            break;
+          }
+          break;
+
+          case LOGGEDGAME_COL_POINTS:
+            value = insert_commas_ll(curline->points);
+            freevalue = 1;
+          break;
+
+          case LOGGEDGAME_COL_TURNS:
+            value = malloc(8 * sizeof(char));
+            sprintf(value, "%d", curline->turns);
+            freevalue = 1;
+          break;
+
+          case LOGGEDGAME_COL_TIME:
+            value = malloc(20 * sizeof(char));
+            struct tm *timeinfo = malloc(sizeof(struct tm));
+            time_t time = (time_t)curline->endtime;
+            localtime_r(&time, timeinfo);
+
+            strftime(value, 20 * sizeof(char), "%Y-%m-%d %H:%M", timeinfo);
+
+            free(timeinfo);
+            freevalue = 1;
+          break;
+
+          case LOGGEDGAME_COL_DEATH:
+            ;
+            int maxwidth = dgl_local_COLS - x;
+            value = malloc((maxwidth + 1) * sizeof(char));
+            strncpy(value, curline->death, maxwidth);
+            freevalue = 1;
           break;
 
           default:
-          value = "?";
+            value = malloc(sizeof(char));
+            value[0] = '\0';
           break;
         }
-        break;
-
-        case LOGGEDGAME_COL_POINTS:
-          value = insert_commas_ll(curline->points);
-          freevalue = 1;
-        break;
-
-        case LOGGEDGAME_COL_TURNS:
-          value = malloc(8 * sizeof(char));
-          sprintf(value, "%d", curline->turns);
-          freevalue = 1;
-        break;
-
-        case LOGGEDGAME_COL_TIME:
-          value = malloc(20 * sizeof(char));
-          struct tm *timeinfo = malloc(sizeof(struct tm));
-          time_t time = (time_t)curline->endtime;
-          localtime_r(&time, timeinfo);
-
-          strftime(value, 20 * sizeof(char), "%Y-%m-%d %H:%M", timeinfo);
-
-          free(timeinfo);
-          freevalue = 1;
-        break;
-
-        case LOGGEDGAME_COL_DEATH:
-          ;
-          int maxwidth = dgl_local_COLS - x;
-          value = malloc((maxwidth + 1) * sizeof(char));
-          strncpy(value, curline->death, maxwidth);
-          freevalue = 1;
-        break;
-
-        default:
-        value = "";
-        break;
+        mvaddstr(y_row, x, value);
+        if(freevalue)
+        {
+          free(value);
+        }
       }
-      mvaddstr(y_row, x, value);
-      if(freevalue)
-      {
-        free(value);
-      }
+      
+      y_row++;
     }
-    
+
+    if(sortlines != NULL)
+    {
+      free(bigline);
+      free(sortlines);
+      filterlines = NULL;
+      filterlinesdone = 0;
+    }
+
     y_row++;
+    mvaddstr(y_row, 1, "g) Latest games  a) Latest ascension  t) Top scores");
+    y_row++;
+    mvaddstr(y_row, 1, "r) Resize to terminal");
+    y_row++;
+    mvaddstr(y_row, 1, "q) Return");
+    y_row += 2;
+    mvaddstr(y_row, 1, "=>");
+    mvprintw(y_row, 3, "");
+    // refresh();
+
+    int menuchoice = 0;
+    switch ((menuchoice = dgl_getch()))
+    {
+      case 'r':
+        break;
+      case 'a':
+        display_mode = LOGGEDGAME_DISPLAY_MODE_LATESTASCENSION;
+        selected_sort_mode = LOGGEDGAME_SORTMODE_NONE;
+        selected_filter_mode = LOGGEDGAME_FILTER_MODE_NORMAL;
+        selected_filter_death = LOGGEDGAME_FILTER_DEATH_ASCENDED;
+        break;
+      case 'g':
+        display_mode = LOGGEDGAME_DISPLAY_MODE_LATESTGAMES;
+        selected_sort_mode = LOGGEDGAME_SORTMODE_NONE;
+        selected_filter_mode = LOGGEDGAME_FILTER_MODE_NORMAL;
+        selected_filter_death = LOGGEDGAME_FILTER_DEATH_ALL;
+        break;
+      case 't':
+        display_mode = LOGGEDGAME_DISPLAY_MODE_TOPSCORES;
+        selected_sort_mode = LOGGEDGAME_SORTMODE_POINTS;
+        selected_filter_mode = LOGGEDGAME_FILTER_MODE_NORMAL;
+        selected_filter_death = LOGGEDGAME_FILTER_DEATH_ALL;
+        break;
+      case ERR:
+      case 'q':
+      case 'Q':
+      case '\x1b':
+        goto exitloggedgamesmenu;
+      default:
+        //Do nothing
+        break;
+    }
   }
 
+exitloggedgamesmenu:
   //Free lines
   for(int i = 0; i < linenum; i++)
   {
@@ -2059,34 +2252,35 @@ void latestgamesmenu(int gameid)
   }
 
   free(lines);
+  free(filterlines);
+}
 
-  y_row++;
-  mvaddstr(y_row, 1, "r) Resize to terminal");
-  y_row++;
-  mvaddstr(y_row, 1, "q) Return");
-  y_row += 2;
-  mvaddstr(y_row, 1, "=>");
-  mvprintw(y_row, 3, "");
-	// refresh();
+int compare_xlogfile_data_points(const void *s1, const void *s2)
+{
+  struct dg_xlogfile_data *d1 = (struct dg_xlogfile_data *)s1; 
+  struct dg_xlogfile_data *d2 = (struct dg_xlogfile_data *)s2;
 
-  while (1)
+  // if (d1->points > d2->points)
+  //   return 1;
+  // else if (d2->points > d1->points)
+  //   return -1;
+
+  // return 0;
+
+  long long points_difference = d1->points - d2->points;
+  if(points_difference > INT_MAX)
   {
-    int menuchoice = 0;
-    switch ((menuchoice = dgl_getch()))
-    {
-      case 'r':
-        term_resize_check();
-        break;
-      case ERR:
-      case 'q':
-      case 'Q':
-      case '\x1b':
-        return;
-      default:
-        //Do nothing
-        break;
-    }
+    return INT_MAX;
   }
+  else if(points_difference < INT_MIN)
+  {
+    return INT_MIN;
+  }
+  else
+  {
+    return (int) points_difference;
+  }
+  
 }
 
 void free_dg_xlogfile_data(struct dg_xlogfile_data *line)
