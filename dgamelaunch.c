@@ -2104,194 +2104,230 @@ void latestgamesmenu(int gameid)
         //Do paging
       }
 
-      
-      //Header Row
-      y_header += 2;
-      
-      struct dg_loggedgames_cols **columns = globalconfig_loggedgames_columns();
-
-      for(int col = 0; col < NUM_LOGGEDGAME_COLS; col++)
+      if(filterlinenum > 0)
       {
-        int x = columns[col]->x;
-        mvaddstr(y_header, x, columns[col]->colname);
-      }
+        //Header Row
+        y_header += 2;
+        
+        struct dg_loggedgames_cols **columns = globalconfig_loggedgames_columns();
 
-
-      // Row Lines
-      
-      y_row = y_header + 1;
-      int maxshownlines = filterlinenum;
-      int maxtablelines = dgl_local_LINES - 17;
-      struct dg_xlogfile_data *curline = NULL;
-
-      if(maxshownlines > maxtablelines)
-      {
-        maxshownlines = maxtablelines;
-      }
-      if(maxshownlines > filterlinenum)
-      {
-        maxshownlines = filterlinenum;
-      }
-
-      if(resetpage || (update_term_size && maxshownlines != old_maxshownlines))
-      {
-        pagesize = maxshownlines;
-        pagenum = 1 + (filterlinenum - 1) / pagesize;
-        firstitem = 0;
-        lastitem = pagesize - 1;
-        lastpage = pagenum - 1;
-        update_term_size = 0;
-      }
-      else
-      {
-        //Do paging
-        firstitem = page * pagesize;
-        lastitem = firstitem + pagesize - 1;        
-      }
-      
-      if(lastitem >= filterlinenum)
-      {
-        lastitem = filterlinenum - 1;
-      }
-
-      old_maxshownlines = maxshownlines;
-      resetpage = 0;
-
-      for(int i = firstitem; i <= lastitem; i++)
-      {
-        curline = filterlines[filterlinenum - 1 - i];
         for(int col = 0; col < NUM_LOGGEDGAME_COLS; col++)
         {
           int x = columns[col]->x;
-          char* value;
-          int freevalue = 0;
-          int donotprintvalue = 0;
-          switch(columns[col]->coltype)
+          mvaddstr(y_header, x, columns[col]->colname);
+        }
+
+
+        // Row Lines
+        
+        y_row = y_header + 1;
+        int maxshownlines = filterlinenum;
+        int maxtablelines = dgl_local_LINES - 17;
+        struct dg_xlogfile_data *curline = NULL;
+
+        if(maxshownlines > maxtablelines)
+        {
+          maxshownlines = maxtablelines;
+        }
+        if(maxshownlines > filterlinenum)
+        {
+          maxshownlines = filterlinenum;
+        }
+
+        if(resetpage || (update_term_size && maxshownlines != old_maxshownlines))
+        {
+          pagesize = maxshownlines;
+          if(pagesize > 0)
           {
-            case LOGGEDGAME_COL_RANK:
-            value = malloc(10 * sizeof(char));
-            sprintf(value, "%d", i + 1);
-            freevalue = 1;
-            break;
-
-            case LOGGEDGAME_COL_NAME:
-            value = curline->name;
-            break;
-
-            case LOGGEDGAME_COL_ROLE:
-            value = curline->role;
-            break;
-
-            case LOGGEDGAME_COL_RACE:
-            value = curline->race;
-            break;
-
-            case LOGGEDGAME_COL_GENDER:
-            value = malloc(2 * sizeof(char));
-            strncpy(value, curline->gender, 1);
-            value[1] = '\0';
-            freevalue = 1;
-            break;
-
-            case LOGGEDGAME_COL_ALIGNMENT:
-            value = malloc(2 * sizeof(char));
-            strncpy(value, curline->align, 1);
-            value[1] = '\0';
-            freevalue = 1;
-            break;
-
-            case LOGGEDGAME_COL_DIFFICULTY:
-            switch(curline->difficulty)
-            {
-              case -2:
-              value = "E";
-              break;
-
-              case -1:
-              value = "e";
-              break;
-
-              case 0:
-              value = "n";
-              break;
-            
-              case 1:
-              value = "h";
-              break;
-
-              case 2:
-              value = "H";
-              break;
-
-              default:
-              value = "?";
-              break;
-            }
-            break;
-
-            case LOGGEDGAME_COL_POINTS:
-              value = insert_commas_ll(curline->points);
-              freevalue = 1;
-            break;
-
-            case LOGGEDGAME_COL_TURNS:
-              value = malloc(8 * sizeof(char));
-              sprintf(value, "%d", curline->turns);
-              freevalue = 1;
-            break;
-
-            case LOGGEDGAME_COL_TIME:
-              value = calloc(20, sizeof(char));
-              struct tm *timeinfo = malloc(sizeof(struct tm));
-              time_t time = (time_t)curline->endtime;
-              localtime_r(&time, timeinfo);
-
-              strftime(value, 20 * sizeof(char), "%Y-%m-%d %H:%M", timeinfo);
-
-              free(timeinfo);
-              freevalue = 1;
-            break;
-
-            case LOGGEDGAME_COL_DEATH:
-              ;
-              int maxwidth = dgl_local_COLS - x;
-              if(maxwidth > 0)
-              {
-                value = calloc(maxwidth + 1, sizeof(char));
-                strncpy(value, curline->death, maxwidth);
-                freevalue = 1;
-              }
-              else
-              {
-                donotprintvalue = 1;
-              }
-              
-            break;
-
-            default:
-              donotprintvalue = 1;
-            break;
+            pagenum = 1 + (filterlinenum - 1) / pagesize;
+            firstitem = 0;
+            lastitem = pagesize - 1;
+            lastpage = pagenum - 1;
           }
-          if(donotprintvalue == 0)
+          else
           {
-            mvaddstr(y_row, x, value);
+            pagenum = 0;
+            firstitem = -1;
+            lastitem = -1;
+            lastpage = 0;
           }
-          if(freevalue)
-          {
-            free(value);
-          }
+          update_term_size = 0;
+        }
+        else
+        {
+          //Do paging
+          firstitem = page * pagesize;
+          lastitem = firstitem + pagesize - 1;        
         }
         
-        y_row++;
-      }
+        if(lastitem >= filterlinenum)
+        {
+          lastitem = filterlinenum - 1;
+        }
 
-      if(pagenum > 1)
-      {
-        char pager[80];
-        sprintf(pager, "(%d-%d of %d)", firstitem + 1, lastitem + 1, filterlinenum);
-        mvaddstr(y_row, 1, pager);
-        y_row++;
+        old_maxshownlines = maxshownlines;
+        resetpage = 0;
+
+        if(firstitem >= 0 && lastitem >= 0)
+        {
+          for(int i = firstitem; i <= lastitem; i++)
+          {
+            curline = filterlines[filterlinenum - 1 - i];
+            for(int col = 0; col < NUM_LOGGEDGAME_COLS; col++)
+            {
+              int x = columns[col]->x;
+              char* value;
+              int freevalue = 0;
+              int donotprintvalue = 0;
+              switch(columns[col]->coltype)
+              {
+                case LOGGEDGAME_COL_RANK:
+                value = malloc(10 * sizeof(char));
+                sprintf(value, "%d", i + 1);
+                freevalue = 1;
+                break;
+
+                case LOGGEDGAME_COL_NAME:
+                value = curline->name;
+                break;
+
+                case LOGGEDGAME_COL_ROLE:
+                value = curline->role;
+                break;
+
+                case LOGGEDGAME_COL_RACE:
+                value = curline->race;
+                break;
+
+                case LOGGEDGAME_COL_GENDER:
+                value = malloc(2 * sizeof(char));
+                strncpy(value, curline->gender, 1);
+                value[1] = '\0';
+                freevalue = 1;
+                break;
+
+                case LOGGEDGAME_COL_ALIGNMENT:
+                value = malloc(2 * sizeof(char));
+                strncpy(value, curline->align, 1);
+                value[1] = '\0';
+                freevalue = 1;
+                break;
+
+                case LOGGEDGAME_COL_DIFFICULTY:
+                switch(curline->difficulty)
+                {
+                  case -2:
+                  value = "E";
+                  break;
+
+                  case -1:
+                  value = "e";
+                  break;
+
+                  case 0:
+                  value = "n";
+                  break;
+                
+                  case 1:
+                  value = "h";
+                  break;
+
+                  case 2:
+                  value = "H";
+                  break;
+
+                  default:
+                  value = "?";
+                  break;
+                }
+                break;
+
+                case LOGGEDGAME_COL_POINTS:
+                  value = insert_commas_ll(curline->points);
+                  freevalue = 1;
+                break;
+
+                case LOGGEDGAME_COL_TURNS:
+                  value = malloc(8 * sizeof(char));
+                  sprintf(value, "%d", curline->turns);
+                  freevalue = 1;
+                break;
+
+                case LOGGEDGAME_COL_TIME:
+                  value = calloc(20, sizeof(char));
+                  struct tm *timeinfo = malloc(sizeof(struct tm));
+                  time_t time = (time_t)curline->endtime;
+                  localtime_r(&time, timeinfo);
+
+                  strftime(value, 20 * sizeof(char), "%Y-%m-%d %H:%M", timeinfo);
+
+                  free(timeinfo);
+                  freevalue = 1;
+                break;
+
+                case LOGGEDGAME_COL_DEATH:
+                  ;
+                  int maxwidth = dgl_local_COLS - x;
+                  if(maxwidth > 0)
+                  {
+                    value = calloc(maxwidth + 1, sizeof(char));
+                    strncpy(value, curline->death, maxwidth);
+                    freevalue = 1;
+                  }
+                  else
+                  {
+                    donotprintvalue = 1;
+                  }
+                  
+                break;
+
+                default:
+                  donotprintvalue = 1;
+                break;
+              }
+              if(donotprintvalue == 0)
+              {
+                mvaddstr(y_row, x, value);
+              }
+              if(freevalue)
+              {
+                free(value);
+              }
+            }
+            
+            y_row++;
+          }
+
+          if(pagenum > 1)
+          {
+            char pager[80];
+            sprintf(pager, "(%d-%d of %d)", firstitem + 1, lastitem + 1, filterlinenum);
+            mvaddstr(y_row, 1, pager);
+            y_row++;
+          }
+        }               
       }
+      else
+      {
+        y_header += 2;
+        if(display_mode == LOGGEDGAME_DISPLAY_MODE_LATESTGAMES)
+        {
+          mvaddstr(y_header, 1, "No games yet");
+        }
+        else if (display_mode == LOGGEDGAME_DISPLAY_MODE_LATESTASCENSION)
+        {
+          mvaddstr(y_header, 1, "No ascensions yet");
+        }
+        else if(display_mode == LOGGEDGAME_DISPLAY_MODE_TOPSCORES)
+        {
+          mvaddstr(y_header, 1, "No top scores yet");
+        }
+        else
+        {
+          mvaddstr(y_header, 1, "Error");
+        }
+      }
+      
     }
     else 
     {
