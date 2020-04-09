@@ -1,10 +1,12 @@
  ## $SERVERID
- ##
- ## $VERSION - Network console game launcher
- ## Copyright (c) 2000-2010 The Dgamelaunch Team
- ## Server maintained by Sound Mind Games
- ##
- ## Games on this server are recorded for in-progress viewing and playback.
+ 
+    ____               _    _    _    _               _     
+  / ___|             | |  | |  | |  | |             | |    
+ / / __  _  __   ___ | |  | |  | |__| |  __ _   ___ | | __ 
+ | ||_ || |/  | / _ \| |  | |  |  __  | / _` | / __|| |/ / 
+ \ \_/ /|  /| || |_| | |_ | |_ | |  | || (_| || (__ |   <  
+  \___/ |_| |_| \___/ \__| \__||_|  |_| \__,_| \___||_|\_\ 
+
 
  Logged in as: $USERNAME
 

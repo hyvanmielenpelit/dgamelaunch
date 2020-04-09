@@ -126,7 +126,7 @@ static struct dg_watchcols default_watchcols[] = {
 };
 
 static struct dg_loggedgames_cols default_loggedgames_cols[] = {
-    {LOGGEDGAME_COL_RANK, 1, "Rank", "%-4s)"},
+    {LOGGEDGAME_COL_RANK, 1, "#", "%-4s)"},
     {LOGGEDGAME_COL_NAME, 6, "Name", "%s)"},
     {LOGGEDGAME_COL_ROLE, 17, "Rol", "%s"},
     {LOGGEDGAME_COL_RACE, 21, "Rac", "%s"},
@@ -136,7 +136,7 @@ static struct dg_loggedgames_cols default_loggedgames_cols[] = {
     {LOGGEDGAME_COL_POINTS, 31, "Score", "%-11s"},
     {LOGGEDGAME_COL_TURNS, 43, "Turns", "%-6s"},
     {LOGGEDGAME_COL_TIME, 50, "Time", "%s"},
-    {LOGGEDGAME_COL_DEATH, 67, "Death", "%s"}    
+    {LOGGEDGAME_COL_DEATH, 68, "Outcome", "%s"}    
 };
 
 int color_remap[16] = {
@@ -1714,9 +1714,7 @@ void latestgamesmenu(int gameid)
       debug_write(message);
       return;
     }
-
-    fseek(filestream, 0, 0);
-    
+   
     int linelength = 0;
     int finishafterthiscolumn = 0;
 
@@ -1914,9 +1912,10 @@ void latestgamesmenu(int gameid)
   int filter_death = LOGGEDGAME_FILTER_DEATH_ALL;
   int selected_filter_mode = LOGGEDGAME_FILTER_MODE_NORMAL;
   int selected_filter_death = LOGGEDGAME_FILTER_DEATH_ALL;
-  int sort_mode = LOGGEDGAME_SORTMODE_NONE;
-  int selected_sort_mode = LOGGEDGAME_SORTMODE_NONE;
-  int display_mode = LOGGEDGAME_DISPLAY_MODE_LATESTGAMES;
+  int sort_mode = LOGGEDGAME_SORTMODE_POINTS;
+  int selected_sort_mode = LOGGEDGAME_SORTMODE_POINTS;
+  int display_mode = LOGGEDGAME_DISPLAY_MODE_TOPSCORES;
+  int sortdone = 0;
   int filterlinesdone = 0, filterlinenum = 0;
   int maxfilterlinenum = 50;
   struct dg_xlogfile_data **filterlines = NULL;
@@ -1931,18 +1930,11 @@ void latestgamesmenu(int gameid)
   int firstitem = 0;
   int lastitem = 0;
   int lastpage = 0;
-  int donothing = 0;
   int update_term_size = 0;
   int old_maxshownlines = 0;
 
   while(1)
   {
-    if(donothing)
-    {
-      donothing = 0;
-      goto waitforcommand;
-    }
-
     term_resize_check();
     erase();
     drawbanner(&banner);
@@ -2076,11 +2068,11 @@ void latestgamesmenu(int gameid)
           filterlinesdone = 1;
         }
 
-        if (selected_sort_mode != sort_mode)
+        if (selected_sort_mode != sort_mode || !sortdone)
         {
           //Do sort
           sort_mode = selected_sort_mode;
-          if (sort_mode == LOGGEDGAME_SORTMODE_POINTS)
+          if (sort_mode == LOGGEDGAME_SORTMODE_POINTS || sort_mode == LOGGEDGAME_SORTMODE_ENDTIME)
           {
             sortlines = calloc(filterlinenum, sizeof(size_t));
             bigline = calloc(filterlinenum, sizeof(struct dg_xlogfile_data));
@@ -2093,10 +2085,42 @@ void latestgamesmenu(int gameid)
               memcpy(bigline + sizeof(struct dg_xlogfile_data) * i, filterlines[i], sizeof(struct dg_xlogfile_data));
             }
 
+            int (*comparefunc)(void*, void*) = NULL;
+            if(sort_mode == LOGGEDGAME_SORTMODE_POINTS)
+            {
+              comparefunc = compare_xlogfile_data_points;
+            }
+            else if (sort_mode == LOGGEDGAME_SORTMODE_ENDTIME)
+            {
+              comparefunc = compare_xlogfile_data_endtime;
+            }
+            else
+            {
+              //Error
+              char message[80];
+              sprintf(message, "Wrong sort mode: %d", sort_mode);
+              debug_write(message);
+              comparefunc = compare_xlogfile_data_points;
+            }
+            
+
             qsort(sortlines[0], filterlinenum, sizeof(struct dg_xlogfile_data), compare_xlogfile_data_points);
 
             filterlines = sortlines;
           }
+          else if(sort_mode == LOGGEDGAME_SORTMODE_NONE)
+          {
+            //Do nothing
+          }
+          else
+          {
+            //Not implemented, error
+            char message[80];
+            sprintf(message, "Unknown sort mode: %d", sort_mode);
+            debug_write(message);
+          }
+          
+          sortdone = 1;
         }
       }
       else
@@ -2272,6 +2296,7 @@ void latestgamesmenu(int gameid)
                   {
                     value = calloc(maxwidth + 1, sizeof(char));
                     strncpy(value, curline->death, maxwidth);
+                    value[0] = toupper(value[0]);
                     freevalue = 1;
                   }
                   else
@@ -2337,7 +2362,7 @@ void latestgamesmenu(int gameid)
     }
 
     int y_footer = dgl_local_LINES - 8;
-    mvaddstr(y_footer, 1, "g) Latest games  a) Latest ascension  t) Top scores");
+    mvaddstr(y_footer, 1, "t) Top scores  g) Latest games  a) Latest ascension");
     y_footer += 2;
     mvaddstr(y_footer, 1, "Browse with arrow keys  r) Resize to terminal");
     y_footer += 2;
@@ -2391,7 +2416,7 @@ waitforcommand:
         }
         else
         {
-          donothing = 1;
+         goto waitforcommand;
         }
         break;
       case KEY_UP:
@@ -2404,7 +2429,7 @@ waitforcommand:
         }
         else 
         {
-          donothing = 1;
+          goto waitforcommand;
         }
         break;
       case ERR:
@@ -2413,8 +2438,7 @@ waitforcommand:
       case '\x1b':
         goto exitloggedgamesmenu;
       default:
-        donothing = 1;
-        break;
+        goto waitforcommand;
     }
   }
 
@@ -2469,6 +2493,27 @@ int compare_xlogfile_data_points(const void *s1, const void *s2)
     return (int) points_difference;
   }
   
+}
+
+int compare_xlogfile_data_endtime(const void *s1, const void *s2)
+{
+  struct dg_xlogfile_data *d1 = (struct dg_xlogfile_data *)s1; 
+  struct dg_xlogfile_data *d2 = (struct dg_xlogfile_data *)s2;
+
+  double diff = difftime(d1->endtime, d2->endtime);
+  
+  if(diff > (double) INT_MAX)
+  {
+    return INT_MAX;
+  }
+  else if(diff < (double) INT_MIN)
+  {
+    return INT_MIN;
+  }
+  else
+  {
+    return (int) diff;
+  }
 }
 
 void free_dg_xlogfile_data(struct dg_xlogfile_data *line)

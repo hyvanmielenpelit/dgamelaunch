@@ -269,7 +269,8 @@ typedef enum
 typedef enum
 {
     LOGGEDGAME_SORTMODE_NONE = 0,
-    LOGGEDGAME_SORTMODE_POINTS = 1
+    LOGGEDGAME_SORTMODE_POINTS,
+    LOGGEDGAME_SORTMODE_ENDTIME
 } dg_loggedgame_sortmode;
 
 typedef enum
@@ -437,6 +438,7 @@ extern char* insert_commas_ll (long long n);
 extern char* insert_commas (char* src);
 extern void free_dg_xlogfile_data(struct dg_xlogfile_data *line);
 extern int compare_xlogfile_data_points(const void *s1, const void *s2);
+extern int compare_xlogfile_data_endtime(const void *s1, const void *s2);
 
 extern void change_email(void);
 extern int changepw(int dowrite);
