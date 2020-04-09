@@ -3,9 +3,11 @@
 $GAMENAME
 
 p) Play game
+
 d) Set options to defaults
 o) Edit options
 c) Copy options from another game
+
 v) View top scores and latest games
 
 q) Return
