@@ -4,6 +4,7 @@ Select a game to play:
 
 a) $DEFGAMENAME(gnollhack)
 b) $DEFGAMENAME(gnollhack2)
+c) $DEFGAMENAME(gnollhack3)
 
 q) Return
 
