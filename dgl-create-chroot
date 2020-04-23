@@ -145,7 +145,12 @@ cp "$CURDIR/examples/dgl_menu_main_anon.txt" .
 cp "$CURDIR/examples/dgl_menu_main_user.txt" .
 cp "$CURDIR/examples/dgl_menu_watchmenu_help.txt" .
 cp "$CURDIR/examples/dgl_menu_defaults.txt" .
+cp "$CURDIR/examples/dgl_copy_options.txt" .
+cp "$CURDIR/examples/dgl_curses_defaults.txt" .
+cp "$CURDIR/examples/dgl_game.txt" .
+cp "$CURDIR/examples/dgl_games.txt" .
 cp "$CURDIR/examples/dgl-banner" .
+
 cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile.gnh"
 cp "$CURDIR/dgl-default-curses-putty-rcfile" "dgl-default-curses-putty-rcfile.gnh"
 cp "$CURDIR/dgl-default-curses-ssh-rcfile" "dgl-default-curses-ssh-rcfile.gnh"
