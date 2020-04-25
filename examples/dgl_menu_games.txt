@@ -6,6 +6,7 @@ a) $DEFGAMENAME(gnollhack)
 b) $DEFGAMENAME(gnollhack2)
 c) $DEFGAMENAME(gnollhack3)
 d) $DEFGAMENAME(gnollhack4)
+e) $DEFGAMENAME(gnollhack5)
 
 q) Return
 
