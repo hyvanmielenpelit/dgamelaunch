@@ -35,7 +35,7 @@ echo "Copying files to /opt/gnollhack/server.gnollhack.com/$1 and giving permiss
 sudo cp -R /$1/* /opt/gnollhack/server.gnollhack.com/$1
 sudo chmod -R a+rwx /opt/gnollhack/server.gnollhack.com/$1/*
 
-if [ -d "/opt/gnollhack/server.gnollhack.com/$1/" ]; then
+if [ -d "/opt/gnollhack/server.gnollhack.com/dgldir/inprogress-$1/" ]; then
     echo "Directory /opt/gnollhack/server.gnollhack.com/dgldir/inprogress-$1 already exists."
 else
   echo "Creating /opt/gnollhack/server.gnollhack.com/dgldir/inprogress-$1 and giving permissions"
