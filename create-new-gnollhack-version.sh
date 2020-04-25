@@ -20,7 +20,7 @@ sudo cp examples/dgamelaunch.conf /opt/gnollhack/server.gnollhack.com/etc
 
 if [ $# -eq 2 ]; then
   echo "Modifying the server address in dgamelaunch.conf to $2-server.gnollhack.com"
-  sudo sed -i -r 's/\$ATTR\(14\)server.gnollhack.com/\$ATTR\(14\)$2-server.gnollhack.com/g' /opt/gnollhack/server.gnollhack.com/etc/dgamelaunch.conf
+  sudo sed -i -r "s/ATTR\(14\)server.gnollhack.com/ATTR\(14\)$2-server.gnollhack.com/g" /opt/gnollhack/server.gnollhack.com/etc/dgamelaunch.conf
 else
   echo "The server address in dgamelaunch.conf was not modified, since the second argument was not given."
   echo "If you want to change the server address automatically, the second argument needs to be, for example, 'eu'."
