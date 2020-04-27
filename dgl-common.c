@@ -377,6 +377,7 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		}		 
 		game_chosen = 0;
 		selected_game = -1;
+		break;
 	case DGLCMD_CHPASSWD:
 	    if (loggedin) changepw(1);
 	    break;
