@@ -86,6 +86,7 @@ cursor		{ return TYPE_CURSOR; }
 "lockfile"	{ return TYPE_PATH_LOCKFILE; }
 "inprogressdir" { return TYPE_PATH_INPROGRESS; }
 "logdir" { return TYPE_PATH_LOG; }
+"defaultoptionsdir" { return TYPE_PATH_DEFAULTOPTIONS; }
 "game_args"	{ return TYPE_GAME_ARGS; }
 extra_info_file { return TYPE_EXTRA_INFO_FILE; }
 "max_idle_time"	{ return TYPE_MAX_IDLE_TIME; }
@@ -131,6 +132,7 @@ return		{ yylval.i = DGLCMD_RETURN;      return TYPE_DGLCMD0; }
 returnmany		{ yylval.i = DGLCMD_RETURNMANY;      return TYPE_DGLCMD1; }
 rawprint	{ yylval.i = DGLCMD_RAWPRINT;    return TYPE_DGLCMD1; }
 gamename		{ yylval.i = DGLCMD_GAMENAME; return TYPE_DGLCMD1; }
+cleargamename		{ yylval.i = DGLCMD_CLEARGAMENAME; return TYPE_DGLCMD0; }
 skipifgame		{ yylval.i = DGLCMD_SKIPIFGAME;      return TYPE_DGLCMD1; }
 DEFINE		{ return TYPE_DEFINE_GAME; }
 

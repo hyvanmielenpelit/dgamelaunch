@@ -34,6 +34,7 @@ struct dg_config defconfig = {
   /* spool = */ "/var/mail/",
   /* inprogressdir = */ "%rinprogress/",
   /* logdir = */ "/bin/var/",
+  /* defaultoptionsdir = */ "%d",
   /* num_args = */ 0,
   /* bin_args = */ NULL,
   /* rc_fmt = */ "%rrcfiles/%n.nethackrc", /* [dglroot]rcfiles/[username].nethackrc */
@@ -57,7 +58,7 @@ int shm_n_games = 200;
 int dgl_local_COLS = -1, dgl_local_LINES = -1;
 int curses_resize = 0;
 
-int selected_game = 0;
+int selected_game = -1;
 int return_from_submenu = 0;
 
 mode_t default_fmode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
@@ -157,10 +158,25 @@ dgl_format_str(int game, struct dg_user *me, char *str, char *plrname)
 		break;
 
 		case 'c':
-			if (me && game_chosen) {
+			if (me && game_chosen)
+			{
 				snprintf (p, end + 1 - p, "%s", chosengamename);
 			}
-			else {
+			else
+			{
+				return NULL;
+			}
+			while (*p != '\0')
+				p++;
+			break;
+
+		case 'd':
+			if (game >= 0 && game < num_games && myconfig[game])
+			{
+				snprintf (p, end + 1 - p, "%s", myconfig[game]->defaultoptionsdir);
+			}
+			else
+			{
 				return NULL;
 			}
 			while (*p != '\0')
@@ -342,8 +358,25 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 			chosengamename = malloc(strlen(p1) + 1);
 			strcpy(chosengamename, p1);
 			game_chosen = 1;
+
+			for (int userchoice = 0; userchoice < num_games; userchoice++)
+      		{
+				if (strcmp(myconfig[userchoice]->shortname, chosengamename) == 0)
+				{
+					selected_game = userchoice;
+					break;
+				}
+			}
 		}
 	    break;
+	case DGLCMD_CLEARGAMENAME:
+		if(chosengamename)
+		{
+			free(chosengamename);
+			chosengamename = NULL;
+		}		 
+		game_chosen = 0;
+		selected_game = -1;
 	case DGLCMD_CHPASSWD:
 	    if (loggedin) changepw(1);
 	    break;

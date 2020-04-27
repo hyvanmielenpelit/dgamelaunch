@@ -56,8 +56,8 @@ static int sortmode_number(const char *sortmode_name) {
 %token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
 %token TYPE_PATH_PASSWD TYPE_PATH_LOCKFILE TYPE_PATH_TTYREC
-%token TYPE_MALSTRING TYPE_PATH_INPROGRESS TYPE_PATH_LOG TYPE_GAME_ARGS
-%token TYPE_RC_FMT
+%token TYPE_MALSTRING TYPE_PATH_INPROGRESS TYPE_PATH_LOG TYPE_PATH_DEFAULTOPTIONS
+%token TYPE_GAME_ARGS TYPE_RC_FMT
 %token TYPE_CMDQUEUE TYPE_DEFINE_MENU TYPE_BANNER_FILE TYPE_CURSOR
 %token TYPE_POSTCMDQUEUE TYPE_TIMEFORMAT
 %token TYPE_MAX_IDLE_TIME TYPE_MENU_MAX_IDLE_TIME TYPE_EXTRA_INFO_FILE
@@ -528,6 +528,11 @@ game_definition : TYPE_CMDQUEUE
 		myconfig[ncnf]->logdir = strdup($3);
 		break;
 
+		case TYPE_PATH_DEFAULTOPTIONS:
+		if (myconfig[ncnf]->defaultoptionsdir) free(myconfig[ncnf]->defaultoptionsdir);
+		myconfig[ncnf]->defaultoptionsdir = strdup($3);
+		break;
+
 		case TYPE_ENCODING:
 		if (!strcasecmp($3, "ask"))
 			myconfig[ncnf]->encoding = -1;
@@ -680,6 +685,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_PATH_LOCKFILE	{ $$ = TYPE_PATH_LOCKFILE; }
 	| TYPE_PATH_INPROGRESS	{ $$ = TYPE_PATH_INPROGRESS; }
 	| TYPE_PATH_LOG	{ $$ = TYPE_PATH_LOG; }
+	| TYPE_PATH_DEFAULTOPTIONS	{ $$ = TYPE_PATH_DEFAULTOPTIONS; }
 	| TYPE_ENCODING         { $$ = TYPE_ENCODING; }
 	| TYPE_LOCALE		{ $$ = TYPE_LOCALE; }
 	| TYPE_DEFTERM		{ $$ = TYPE_DEFTERM; }
@@ -718,6 +724,7 @@ const char* lookup_token (int t)
     case TYPE_PATH_TTYREC: return "ttyrecdir";
     case TYPE_PATH_INPROGRESS: return "inprogressdir";
     case TYPE_PATH_LOG: return "logdir";
+	case TYPE_PATH_DEFAULTOPTIONS: return "defaultoptionsdir";
     case TYPE_GAME_ARGS: return "game_args";
     case TYPE_MAX_IDLE_TIME: return "max_idle_time";
     case TYPE_RC_FMT: return "rc_fmt";

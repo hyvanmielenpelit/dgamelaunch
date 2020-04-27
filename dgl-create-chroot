@@ -151,10 +151,11 @@ cp "$CURDIR/examples/dgl_game.txt" .
 cp "$CURDIR/examples/dgl_games.txt" .
 cp "$CURDIR/examples/dgl-banner" .
 
-cp "$CURDIR/dgl-default-rcfile" "dgl-default-rcfile.gnh"
-cp "$CURDIR/dgl-default-curses-putty-rcfile" "dgl-default-curses-putty-rcfile.gnh"
-cp "$CURDIR/dgl-default-curses-ssh-rcfile" "dgl-default-curses-ssh-rcfile.gnh"
-chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner dgl-default-rcfile.gnh dgl-default-curses-putty-rcfile.gnh dgl-default-curses-ssh-rcfile.gnh
+cp "$CURDIR/dgl-default-rcfile" "$CHROOT/$NHSUBDIR/dgl-default-rcfile.gnh"
+cp "$CURDIR/dgl-default-curses-putty-rcfile" "$CHROOT/$NHSUBDIR/dgl-default-curses-putty-rcfile.gnh"
+cp "$CURDIR/dgl-default-curses-ssh-rcfile" "$CHROOT/$NHSUBDIR/dgl-default-curses-ssh-rcfile.gnh"
+chmod go+r dgl_menu_main_anon.txt dgl_menu_main_user.txt dgl-banner
+chmod go+r $CHROOT/$NHSUBDIR/dgl-default-rcfile.gnh $CHROOT/$NHSUBDIR/dgl-default-curses-putty-rcfile.gnh $CHROOT/$NHSUBDIR/dgl-default-curses-ssh-rcfile.gnh
 
 NHSUBDIR="`echo ${NHSUBDIR%/}`"
 NHSUBDIR="`echo ${NHSUBDIR#/}`"

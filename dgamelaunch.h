@@ -80,6 +80,7 @@ typedef enum
     DGLCMD_RETURN,	/* return */
     DGLCMD_RETURNMANY,	/* returnmany "2" */
     DGLCMD_GAMENAME, /* gamename "gnollhack" */
+    DGLCMD_CLEARGAMENAME, /* cleargamename */
     DGLCMD_SKIPIFGAME /* skipifgame */
 } dglcmd_actions;
 
@@ -218,6 +219,7 @@ struct dg_config
     char* spool;
     char* inprogressdir;
     char* logdir;
+    char* defaultoptionsdir;
     int num_args; /* # of bin_args */
     char **bin_args; /* args for game binary */
     char *rc_fmt;
