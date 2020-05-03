@@ -7,7 +7,7 @@ Curses interface defaults
 
 Next, select your SSH client:
 
-p) PuTTY on Windows
+p) PuTTY on Windows (with CP437)
 s) ssh command in Terminal (Linux, macOS, Windows)
 
 q) Return
