@@ -43,7 +43,7 @@ shopt -s nullglob dotglob
 varfiles=(/opt/gnollhack/server.gnollhack.com/$1/var/*)
 if  [ ${#varfiles[@]} -gt 0 ]; then
   echo "Deleting files from var directory."
-  find /opt/gnollhack/server.gnollhack.com/$1/var -maxdepth 1 -type f -exec rm -iv {} \;
+  sudo find /opt/gnollhack/server.gnollhack.com/$1/var -maxdepth 1 -type f -delete
 else
   echo "No files found in var directory."
 fi
