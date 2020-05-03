@@ -45,7 +45,7 @@ sudo cp ./dgl-default-curses-putty-rcfile /opt/gnollhack/server.gnollhack.com/$1
 sudo cp ./dgl-default-curses-ssh-rcfile /opt/gnollhack/server.gnollhack.com/$1/dgl-default-curses-ssh-rcfile.gnh
 
 echo "Deleting the old options files from users, if any."
-sudo rm -r /opt/gnollhack/server.gnollhack.com/dgldir/userdata/*_$2.gnhrc
+sudo find /opt/gnollhack/server.gnollhack.com/dgldir/userdata -type f -name "*_$2.gnhrc" -delete
 
 shopt -s nullglob dotglob
 varfiles=(/opt/gnollhack/server.gnollhack.com/$1/var/*)
