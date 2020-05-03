@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ $# -eq 0 ]; then
   echo "No arguments. The first argument must be the name of the GnollHack directory. For example, ghn5."
@@ -26,17 +26,35 @@ else
   echo "If you want to change the server address automatically, the second argument needs to be, for example, 'eu'."
 fi
 
-echo "Copying default rc files"
-sudo cp ./dgl-default-rcfile /opt/gnollhack/server.gnollhack.com/dgl-default-rcfile.gnh
-sudo cp ./dgl-default-curses-putty-rcfile /opt/gnollhack/server.gnollhack.com/dgl-default-curses-putty-rcfile.gnh
-sudo cp ./dgl-default-curses-ssh-rcfile /opt/gnollhack/server.gnollhack.com/dgl-default-curses-ssh-rcfile.gnh
-
 if [ -d "/opt/gnollhack/server.gnollhack.com/$1/" ]; then
     echo "Directory /opt/gnollhack/server.gnollhack.com/$1 already exists."
 else
   echo "Creating /opt/gnollhack/server.gnollhack.com/$1 and giving permissions"
   sudo mkdir /opt/gnollhack/server.gnollhack.com/$1
   sudo chmod a+rwx /opt/gnollhack/server.gnollhack.com/$1
+fi
+
+echo "Copying default rc files"
+sudo cp ./dgl-default-rcfile /opt/gnollhack/server.gnollhack.com/$1/dgl-default-rcfile.gnh
+sudo cp ./dgl-default-curses-putty-rcfile /opt/gnollhack/server.gnollhack.com/$1/dgl-default-curses-putty-rcfile.gnh
+sudo cp ./dgl-default-curses-ssh-rcfile /opt/gnollhack/server.gnollhack.com/$1/dgl-default-curses-ssh-rcfile.gnh
+
+shopt -s nullglob dotglob
+varfiles=(/opt/gnollhack/server.gnollhack.com/$1/var/*)
+if  [ ${#varfiles[@]} -gt 0 ]; then
+  echo "Deleting files from var directory."
+  find /opt/gnollhack/server.gnollhack.com/$1/var -maxdepth 1 -type f -exec rm -iv {} \;
+else
+  echo "No files found in var directory."
+fi
+
+shopt -s nullglob dotglob
+savefiles=(/opt/gnollhack/server.gnollhack.com/$1/var/save/*)
+if  [ ${#savefiles[@]} -gt 0 ]; then
+  echo "Deleting saved games."
+  sudo rm /opt/gnollhack/server.gnollhack.com/$1/var/save/*
+else
+  echo "No saved files found."
 fi
 
 echo "Copying files to /opt/gnollhack/server.gnollhack.com/$1 and giving permissions"
