@@ -81,7 +81,8 @@ typedef enum
     DGLCMD_RETURNMANY,	/* returnmany "2" */
     DGLCMD_GAMENAME, /* gamename "gnollhack" */
     DGLCMD_CLEARGAMENAME, /* cleargamename */
-    DGLCMD_SKIPIFGAME /* skipifgame */
+    DGLCMD_SKIPIFGAME, /* skipifgame */
+    DGLCMD_RESIZEWINDOW /* resizewindow */
 } dglcmd_actions;
 
 typedef enum
@@ -214,6 +215,8 @@ struct dg_config
     char* shortname;
     char* product;
     char* version;
+    int recommended_columns;
+    int recommended_rows;
     char* rcfile;
     char* ttyrecdir;
     char* spool;
@@ -374,6 +377,10 @@ extern int set_max;
 
 extern int selected_game;
 extern int return_from_submenu;
+extern int redrawbanner;
+extern int newwindowrows;
+extern int newwindowcols;
+extern int curses_resize;
 
 extern struct dg_globalconfig globalconfig;
 

@@ -131,8 +131,7 @@ ttyrec_id(int game, char *username, char *ttyrec_filename)
     free(buf);
 }
 
-int
-ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
+int ttyrec_main(int game, char *username, char *ttyrec_path, char *ttyrec_filename)
 {
   char dirname[100];
 
@@ -140,82 +139,94 @@ ttyrec_main (int game, char *username, char *ttyrec_path, char* ttyrec_filename)
   dgl_parent = getpid();
   child = subchild = input_child = 0;
 
-  if (!ttyrec_path) {
-      child = fork();
-      if (child < 0) {
-	      perror ("fork");
-	      fail ();
-      }
-      if (child == 0) {
-	      execvp (myconfig[game]->game_path, myconfig[game]->bin_args);
-      } else {
-	      int status;
-	      (void) wait(&status);
-      }
-      return 0;
+  if (!ttyrec_path)
+  {
+    child = fork();
+    if (child < 0)
+    {
+      perror("fork");
+      fail();
+    }
+    if (child == 0)
+    {
+      execvp(myconfig[game]->game_path, myconfig[game]->bin_args);
+    }
+    else
+    {
+      int status;
+      (void)wait(&status);
+    }
+    return 0;
   }
 
-  if (ttyrec_path[strlen(ttyrec_path)-1] == '/')
-      snprintf (dirname, 100, "%s%s", ttyrec_path, ttyrec_filename);
+  if (ttyrec_path[strlen(ttyrec_path) - 1] == '/')
+    snprintf(dirname, 100, "%s%s", ttyrec_path, ttyrec_filename);
   else
-      snprintf (dirname, 100, "%s/%s", ttyrec_path, ttyrec_filename);
+    snprintf(dirname, 100, "%s/%s", ttyrec_path, ttyrec_filename);
   ancient_encoding = myconfig[game]->encoding;
   if (ancient_encoding == -1)
-      query_encoding(game, username);
+    query_encoding(game, username);
 
   snprintf(last_ttyrec, 512, "%s", dirname);
 
   atexit(&remove_ipfile);
-  if ((fscript = fopen (dirname, "w")) == NULL)
-    {
-      perror (dirname);
-      fail ();
-    }
-  setbuf (fscript, NULL);
+  if ((fscript = fopen(dirname, "w")) == NULL)
+  {
+    perror(dirname);
+    fail();
+  }
+  setbuf(fscript, NULL);
 
-  fixtty ();
+  fixtty();
 
-  (void) signal (SIGCHLD, finish);
-  child = fork ();
+  (void)signal(SIGCHLD, finish);
+  child = fork();
   if (child < 0)
-    {
-      perror ("fork");
-      fail ();
-    }
+  {
+    perror("fork");
+    fail();
+  }
   if (child == 0)
+  {
+    subchild = child = fork();
+    if (child < 0)
     {
-      subchild = child = fork ();
-      if (child < 0)
-        {
-          perror ("fork");
-          fail ();
-        }
-      if (child)
-        {
-          close (slave);
-          ipfile = gen_inprogress_lock (game, child, ttyrec_filename);
-	  ttyrec_id(game, username, ttyrec_filename);
-          dooutput (myconfig[game]->max_idle_time);
-        }
-      else
-	  doshell (game, username);
+      perror("fork");
+      fail();
     }
 
-  (void) fclose (fscript);
+    if (child)
+    {
+      close(slave);
+      ipfile = gen_inprogress_lock(game, child, ttyrec_filename);
+      ttyrec_id(game, username, ttyrec_filename);
+      dooutput(myconfig[game]->max_idle_time);
+    }
+    else
+    {
+      //Get original window size
+      struct winsize w;
+      ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+      doshell(game, username, w.ws_col, w.ws_row);
+    }
+  }
+
+  (void)fclose(fscript);
 
   wait_for_menu = 1;
   input_child = fork();
   if (input_child < 0)
   {
-      perror ("fork2");
-      fail ();
+    perror("fork2");
+    fail();
   }
   if (!input_child)
-      doinput ();
+    doinput();
   else
   {
-      while (wait_for_menu)
-	  sleep(1);
+    while (wait_for_menu)
+      sleep(1);
   }
 
   remove_ipfile();
@@ -475,7 +486,7 @@ dooutput (int max_idle_time)
 }
 
 void
-doshell (int game, char *username)
+doshell (int game, char *username, int cols, int rows)
 {
   getslave ();
   (void) close (master);
@@ -492,6 +503,16 @@ doshell (int game, char *username)
   if (myconfig[game]->chdir)
       (void) chdir(myconfig[game]->chdir);
   */
+
+
+  if(cols > 0 && rows > 0)
+  {
+    //Set right window size here
+    struct winsize w;
+    w.ws_col = cols;
+    w.ws_row = rows;
+    ioctl(STDOUT_FILENO, TIOCSWINSZ, &w);
+  }
 
   execvp (myconfig[game]->game_path, myconfig[game]->bin_args);
 

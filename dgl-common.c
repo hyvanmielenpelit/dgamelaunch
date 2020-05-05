@@ -29,6 +29,8 @@ struct dg_config defconfig = {
   /* shortname = */ "GNH",
   /* product = */ "GnollHack",
   /* version = */ "4.0",
+  /* recommended_columns = */ 0,
+  /* recommended_rows = */ 0,
   /* rcfile = */ NULL, /*"/dgl-default-rcfile",*/
   /* ttyrecdir =*/ "%ruserdata/%n/ttyrec/",
   /* spool = */ "/var/mail/",
@@ -60,6 +62,9 @@ int curses_resize = 0;
 
 int selected_game = -1;
 int return_from_submenu = 0;
+int redrawbanner = 0;
+int newwindowcols = 0;
+int newwindowrows = 0;
 
 mode_t default_fmode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 
@@ -262,8 +267,9 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
     if (!p1 || !p2) return 1;
 
     return_from_submenu = 0;
+	redrawbanner = 0;
 
-    while (tmp && !return_from_submenu && !skip_remaining) {
+    while (tmp && !return_from_submenu && !skip_remaining && !redrawbanner) {
 	if (tmp->param1) strcpy(p1, dgl_format_str(game, me, tmp->param1, NULL));
 	if (tmp->param2) strcpy(p2, dgl_format_str(game, me, tmp->param2, NULL));
 
@@ -377,6 +383,19 @@ dgl_exec_cmdqueue(struct dg_cmdpart *queue, int game, struct dg_user *me)
 		}		 
 		game_chosen = 0;
 		selected_game = -1;
+		break;
+	case DGLCMD_RESIZEWINDOW:
+		if(selected_game == -1)
+		{
+			break;
+		}
+		newwindowrows = myconfig[selected_game]->recommended_rows > dgl_local_LINES ? myconfig[selected_game]->recommended_rows : dgl_local_LINES;
+		newwindowcols = myconfig[selected_game]->recommended_columns > dgl_local_COLS ? myconfig[selected_game]->recommended_columns : dgl_local_COLS;
+		printf ("\033[8;%d;%dt", newwindowrows, newwindowcols);
+		curses_resize = 1;
+		term_resize_check();
+		redrawbanner = 1;
+		erase();
 		break;
 	case DGLCMD_CHPASSWD:
 	    if (loggedin) changepw(1);

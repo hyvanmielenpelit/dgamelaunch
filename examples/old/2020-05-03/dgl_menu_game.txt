@@ -4,6 +4,8 @@ $GAMENAME
 
 p) Play game
 
+r) Resize window to recommended size
+
 d) Set options to defaults
 o) Edit options
 c) Copy options from another game

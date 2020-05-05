@@ -76,6 +76,8 @@ cursor		{ return TYPE_CURSOR; }
 "short_name"	{ return TYPE_GAME_SHORT_NAME; }
 "product"	{ return TYPE_PRODUCT; }
 "version"	{ return TYPE_GAME_VERSION; }
+"recommended_columns"	{ return TYPE_RECOMMENDED_COLUMNS; }
+"recommended_rows"	{ return TYPE_RECOMMENDED_ROWS; }
 "game_id"	{ return TYPE_GAME_ID; }
 "game_path"	{ return TYPE_PATH_GAME; }
 "dglroot"	{ return TYPE_PATH_DGLDIR; }
@@ -134,6 +136,7 @@ rawprint	{ yylval.i = DGLCMD_RAWPRINT;    return TYPE_DGLCMD1; }
 gamename		{ yylval.i = DGLCMD_GAMENAME; return TYPE_DGLCMD1; }
 cleargamename		{ yylval.i = DGLCMD_CLEARGAMENAME; return TYPE_DGLCMD0; }
 skipifgame		{ yylval.i = DGLCMD_SKIPIFGAME;      return TYPE_DGLCMD1; }
+resizewindow		{ yylval.i = DGLCMD_RESIZEWINDOW; return TYPE_DGLCMD0; }
 DEFINE		{ return TYPE_DEFINE_GAME; }
 
 

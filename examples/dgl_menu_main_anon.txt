@@ -1,8 +1,8 @@
- ## $SERVERID
- ##
- ## Server maintained by Sound Mind Games
- ##
- ## Games on this server are recorded for in-progress viewing and playback.
+## $SERVERID
+##
+## Server maintained by Sound Mind Games
+##
+## Games on this server are recorded for in-progress viewing and playback.
 
    ____               _    _    _    _               _     
   / ___|             | |  | |  | |  | |             | |    
@@ -12,12 +12,12 @@
   \___/ |_| |_| \___/ \__| \__||_|  |_| \__,_| \___||_|\_\ 
 
 
- Not logged in.
+Not logged in.
 
- l) Login
- r) Register new user
- w) Watch games in progress
+l) Login
+r) Register new user
+w) Watch games in progress
 
- q) Quit
+q) Quit
 
- =>
+=>
