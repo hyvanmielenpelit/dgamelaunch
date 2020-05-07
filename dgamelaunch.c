@@ -2082,7 +2082,7 @@ void latestgamesmenu(int gameid)
         if(myconfig[gameid]->minturns > 0)
         {
           char message[256];
-          sprintf(message, "Latest Games Over %d Turns", myconfig[gameid]->minturns);
+          sprintf(message, "Latest Games - Games Over %d Turns", myconfig[gameid]->minturns);
           mvaddstr(y_header, x_col, message);
         }
         else
