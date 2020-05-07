@@ -2164,7 +2164,7 @@ void latestgamesmenu(int gameid)
               right_death_filter = 1;
             }
 
-            if (right_mode_filter && right_death_filter)
+            if (right_mode_filter && right_death_filter && lines[i]->turns >= myconfig[gameid]->minturns)
             {
               if (filterlinenum == maxfilterlinenum)
               {

@@ -217,6 +217,7 @@ struct dg_config
     char* version;
     int recommended_columns;
     int recommended_rows;
+    int minturns;
     char* rcfile;
     char* ttyrecdir;
     char* spool;

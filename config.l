@@ -78,6 +78,7 @@ cursor		{ return TYPE_CURSOR; }
 "version"	{ return TYPE_GAME_VERSION; }
 "recommended_columns"	{ return TYPE_RECOMMENDED_COLUMNS; }
 "recommended_rows"	{ return TYPE_RECOMMENDED_ROWS; }
+"showgame_minturns" { return TYPE_MINTURNS; }
 "game_id"	{ return TYPE_GAME_ID; }
 "game_path"	{ return TYPE_PATH_GAME; }
 "dglroot"	{ return TYPE_PATH_DGLDIR; }

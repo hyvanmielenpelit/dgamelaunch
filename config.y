@@ -52,6 +52,7 @@ static int sortmode_number(const char *sortmode_name) {
 %token TYPE_SUSER TYPE_SGROUP TYPE_SGID TYPE_SUID TYPE_MAX TYPE_MAXNICKLEN
 %token TYPE_GAME_SHORT_NAME TYPE_PRODUCT TYPE_GAME_VERSION TYPE_WATCH_SORTMODE
 %token TYPE_BANNERVARS TYPE_RECOMMENDED_ROWS TYPE_RECOMMENDED_COLUMNS
+%token TYPE_MINTURNS
 %token TYPE_ALLOW_REGISTRATION TYPE_WATCH_COLUMNS TYPE_GAME_ID
 %token TYPE_PATH_GAME TYPE_NAME_GAME TYPE_PATH_DGLDIR TYPE_PATH_SPOOL
 %token TYPE_PATH_BANNER TYPE_PATH_CANNED TYPE_PATH_CHROOT
@@ -518,6 +519,11 @@ game_definition : TYPE_CMDQUEUE
 		myconfig[ncnf]->recommended_rows = atoi($3);
 		break;
 
+		case TYPE_MINTURNS:
+		if (myconfig[ncnf]->minturns) free (myconfig[ncnf]->minturns);
+		myconfig[ncnf]->minturns = atoi($3);
+		break;
+
 	    case TYPE_GAME_ID:
 		if (myconfig[ncnf]->game_id) free (myconfig[ncnf]->game_id);
 		myconfig[ncnf]->game_id = strdup($3);
@@ -687,6 +693,7 @@ KeyType : TYPE_SUSER	{ $$ = TYPE_SUSER; }
 	| TYPE_GAME_VERSION	{ $$ = TYPE_GAME_VERSION; }
 	| TYPE_RECOMMENDED_COLUMNS	{ $$ = TYPE_RECOMMENDED_COLUMNS; }
 	| TYPE_RECOMMENDED_ROWS	{ $$ = TYPE_RECOMMENDED_ROWS; }
+	| TYPE_MINTURNS	{ $$ = TYPE_MINTURNS; }
 	| TYPE_GAME_ID	{ $$ = TYPE_GAME_ID; }
 	| TYPE_PATH_DGLDIR	{ $$ = TYPE_PATH_DGLDIR; }
 	| TYPE_PATH_SPOOL	{ $$ = TYPE_PATH_SPOOL; }
@@ -730,6 +737,7 @@ const char* lookup_token (int t)
     case TYPE_GAME_VERSION: return "version";
     case TYPE_RECOMMENDED_COLUMNS: return "recommended_columns";
     case TYPE_RECOMMENDED_ROWS: return "recommended_rows";
+	case TYPE_MINTURNS: return "showgame_minturns";
     case TYPE_GAME_ID: return "game_id";
     case TYPE_PATH_DGLDIR: return "dglroot";
     case TYPE_PATH_SPOOL: return "spooldir";

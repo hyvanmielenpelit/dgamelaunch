@@ -31,6 +31,7 @@ struct dg_config defconfig = {
   /* version = */ "4.0",
   /* recommended_columns = */ 0,
   /* recommended_rows = */ 0,
+  /* minturns = */ 0,
   /* rcfile = */ NULL, /*"/dgl-default-rcfile",*/
   /* ttyrecdir =*/ "%ruserdata/%n/ttyrec/",
   /* spool = */ "/var/mail/",
