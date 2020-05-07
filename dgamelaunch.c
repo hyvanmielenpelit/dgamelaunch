@@ -2079,13 +2079,31 @@ void latestgamesmenu(int gameid)
     switch(display_mode)
     {
       case LOGGEDGAME_DISPLAY_MODE_LATESTGAMES:
-        mvaddstr(y_header, x_col, "Latest Games");
+        if(myconfig[gameid]->minturns > 0)
+        {
+          char message[256];
+          sprintf(message, "Latest Games Over %d Turns", myconfig[gameid]->minturns);
+          mvaddstr(y_header, x_col, message);
+        }
+        else
+        {
+          mvaddstr(y_header, x_col, "Latest Games");
+        }        
         break;
       case LOGGEDGAME_DISPLAY_MODE_LATESTASCENSION:
         mvaddstr(y_header, x_col, "Latest Ascensions");
         break;
       case LOGGEDGAME_DISPLAY_MODE_TOPSCORES:
-        mvaddstr(y_header, x_col, "Top Scores");
+        if(myconfig[gameid]->minturns > 0)
+        {
+          char message[256];
+          sprintf(message, "Top Scores - Games Over %d Turns", myconfig[gameid]->minturns);
+          mvaddstr(y_header, x_col, message);
+        }
+        else
+        {
+          mvaddstr(y_header, x_col, "Top Scores");
+        }
         break;
       default:
         mvaddstr(y_header, x_col, "Error");
