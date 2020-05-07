@@ -3,7 +3,6 @@
 ## Server maintained by Sound Mind Games
 ##
 ## Games on this server are recorded for in-progress viewing and playback.
-
    ____               _    _    _    _               _     
   / ___|             | |  | |  | |  | |             | |    
  / / __  _  __   ___ | |  | |  | |__| |  __ _   ___ | | __ 
