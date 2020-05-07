@@ -2,11 +2,9 @@
 
 $GAMENAME
 
-$WINDOW_SIZE_WIDGET
-
 p) Play game
 
-r) Resize window to recommended size
+$WINDOW_SIZE_WIDGET
 
 d) Set options to defaults
 o) Edit options

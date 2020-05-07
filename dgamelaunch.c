@@ -647,123 +647,117 @@ void drawbanner(struct dg_banner *ban)
     }
     else if (strncmp(tmpbuf2, "$WINDOW_SIZE_WIDGET", strlen("$WINDOW_SIZE_WIDGET")) == 0)
     {
-        int local_cols = 0; 
-        int local_rows = 0;
-        if(newwindowcols > 0)
-        {
-          local_cols = newwindowcols;
-          newwindowcols = 0;
-        }
-        else
-        {
-          local_cols = dgl_local_COLS;
-        }
+      int local_cols = 0; 
+      int local_rows = 0;
+      if(newwindowcols > 0)
+      {
+        local_cols = newwindowcols;
+        newwindowcols = 0;
+      }
+      else
+      {
+        local_cols = dgl_local_COLS;
+      }
 
-        if(newwindowrows > 0)
-        {
-          local_rows = newwindowrows;
-          newwindowrows = 0;
-        }
-        else 
-        {
-          local_rows = dgl_local_LINES;
-        }
+      if(newwindowrows > 0)
+      {
+        local_rows = newwindowrows;
+        newwindowrows = 0;
+      }
+      else 
+      {
+        local_rows = dgl_local_LINES;
+      }
 
-        int red = COLOR_PAIR(COLOR_RED); // | A_NORMAL;
+      int red = COLOR_PAIR(COLOR_RED) | A_BOLD; // | A_NORMAL;
+      int iswidgetred = 0;
 
-        char *rec_term_size = banner_var_value("$RECTERMSIZE");
-        mvaddstr(1 + i - removedlines, x, rec_term_size);
-        x += strlen(rec_term_size);
-        //All in white
-        sprintf(msg, "%dx%d", myconfig[selected_game]->recommended_columns, myconfig[selected_game]->recommended_rows);
+      if(myconfig[selected_game]->recommended_columns > 0 && local_cols < myconfig[selected_game]->recommended_columns && 
+        myconfig[selected_game]->recommended_rows > 0 && local_rows < myconfig[selected_game]->recommended_rows)
+      {
+        iswidgetred=1;
+      }
+      else if(myconfig[selected_game]->recommended_columns > 0 &&  local_cols < myconfig[selected_game]->recommended_columns
+        && (myconfig[selected_game]->recommended_rows == 0 || local_rows >= myconfig[selected_game]->recommended_rows))
+      {
+        iswidgetred=1;
+      }
+      else if((myconfig[selected_game]->recommended_columns == 0 || local_cols >= myconfig[selected_game]->recommended_columns)
+        && (myconfig[selected_game]->recommended_rows > 0 && local_rows < myconfig[selected_game]->recommended_rows))
+      {
+        iswidgetred=1;
+      }
+
+      if(iswidgetred)
+      {
+        attron(red);
+      }
+
+      char *rec_term_size = banner_var_value("$RECTERMSIZE");
+      mvaddstr(1 + i - removedlines, x, rec_term_size);
+      x += strlen(rec_term_size);
+      sprintf(msg, "%dx%d", myconfig[selected_game]->recommended_columns, myconfig[selected_game]->recommended_rows);
+      mvaddstr(1 + i - removedlines, x, msg);
+      x += strlen(msg);
+              
+      if(iswidgetred)
+      {
+        attroff(red);
+      }
+
+      // removedlines--;
+      // x=1;
+      char *your_term_size = banner_var_value("$YOURTERMSIZE");
+      mvaddstr(1 + i - removedlines, x, your_term_size);
+      x += strlen(your_term_size);
+
+      if(myconfig[selected_game]->recommended_columns > 0 && local_cols < myconfig[selected_game]->recommended_columns && 
+        myconfig[selected_game]->recommended_rows > 0 && local_rows < myconfig[selected_game]->recommended_rows)
+      {
+        //All red
+        attron(red);
+        sprintf(msg, "%dx%d",local_cols, local_rows);
         mvaddstr(1 + i - removedlines, x, msg);
+        attroff(red);
+        x += strlen(msg);
+      }
+      else if(myconfig[selected_game]->recommended_columns > 0 &&  local_cols < myconfig[selected_game]->recommended_columns
+        && (myconfig[selected_game]->recommended_rows == 0 || local_rows >= myconfig[selected_game]->recommended_rows))
+      {
+        //Only cols red
+        attron(red);
+        sprintf(msg, "%d", local_cols);
+        mvaddstr(1 + i - removedlines, x, msg);
+        attroff(red);
+        x += strlen(msg);
+        sprintf(msg, "x%d", local_rows);
+        mvaddstr(1 + i - removedlines, x, msg);
+        x += strlen(msg);
+      }
+      else if((myconfig[selected_game]->recommended_columns == 0 || local_cols >= myconfig[selected_game]->recommended_columns)
+        && (myconfig[selected_game]->recommended_rows > 0 && local_rows < myconfig[selected_game]->recommended_rows))
+      {
+        //Only rows red
+        sprintf(msg, "%dx", local_cols);
+        mvaddstr(1 + i - removedlines, x, msg);
+        x += strlen(msg);
+        sprintf(msg, "%d", local_rows);
+        attron(red);
+        mvaddstr(1 + i - removedlines, x, msg);
+        attroff(red);
+        x += strlen(msg);
+      }
+      else
+      {
+        //All in white
+        sprintf(msg, "%dx%d", local_cols, local_rows);
+        mvaddstr(1 + i - removedlines, x, msg);
+        x += strlen(msg);
+      }
 
-
-        // if(myconfig[selected_game]->recommended_columns > 0 && local_cols < myconfig[selected_game]->recommended_columns && 
-        //   myconfig[selected_game]->recommended_rows > 0 && local_rows < myconfig[selected_game]->recommended_rows)
-        // {
-        //   //All red
-        //   attron(red);
-        //   sprintf(msg, "%dx%d", myconfig[selected_game]->recommended_columns, myconfig[selected_game]->recommended_rows);
-        //   mvaddstr(1 + i - removedlines, x, msg);
-        //   attroff(red);
-        // }
-        // else if(myconfig[selected_game]->recommended_columns > 0 &&  local_cols < myconfig[selected_game]->recommended_columns
-        //   && (myconfig[selected_game]->recommended_rows == 0 || local_rows >= myconfig[selected_game]->recommended_rows))
-        // {
-        //   //Only cols red
-        //   attron(red);
-        //   sprintf(msg, "%d", myconfig[selected_game]->recommended_columns);
-        //   mvaddstr(1 + i - removedlines, x, msg);
-        //   attroff(red);
-        //   x += strlen(msg);
-        //   sprintf(msg, "x%d", myconfig[selected_game]->recommended_rows);
-        //   mvaddstr(1 + i - removedlines, x, msg);
-        // }
-        // else if((myconfig[selected_game]->recommended_columns == 0 || local_cols >= myconfig[selected_game]->recommended_columns)
-        //   && (myconfig[selected_game]->recommended_rows > 0 && local_rows < myconfig[selected_game]->recommended_rows))
-        // {
-        //   //Only rows red
-        //   sprintf(msg, "%dx", myconfig[selected_game]->recommended_columns);
-        //   mvaddstr(1 + i - removedlines, x, msg);
-        //   x += strlen(msg);
-        //   sprintf(msg, "%d", myconfig[selected_game]->recommended_rows);
-        //   attron(red);
-        //   mvaddstr(1 + i - removedlines, x, msg);
-        //   attroff(red);
-        // }
-        // else
-        // {
-        //   //All in white
-        //   sprintf(msg, "%dx%d", myconfig[selected_game]->recommended_columns, myconfig[selected_game]->recommended_rows);
-        //   mvaddstr(1 + i - removedlines, x, msg);
-        // }
-        
-        removedlines--;
-        x=1;
-        char *your_term_size = banner_var_value("$YOURTERMSIZE");
-        mvaddstr(1 + i - removedlines, x, your_term_size);
-        x += strlen(your_term_size);
-
-        if(myconfig[selected_game]->recommended_columns > 0 && local_cols < myconfig[selected_game]->recommended_columns && 
-          myconfig[selected_game]->recommended_rows > 0 && local_rows < myconfig[selected_game]->recommended_rows)
-        {
-          //All red
-          attron(red);
-          sprintf(msg, "%dx%d",local_cols, local_rows);
-          mvaddstr(1 + i - removedlines, x, msg);
-          attroff(red);
-        }
-        else if(myconfig[selected_game]->recommended_columns > 0 &&  local_cols < myconfig[selected_game]->recommended_columns
-          && (myconfig[selected_game]->recommended_rows == 0 || local_rows >= myconfig[selected_game]->recommended_rows))
-        {
-          //Only cols red
-          attron(red);
-          sprintf(msg, "%d", local_cols);
-          mvaddstr(1 + i - removedlines, x, msg);
-          attroff(red);
-          x += strlen(msg);
-          sprintf(msg, "x%d", local_rows);
-          mvaddstr(1 + i - removedlines, x, msg);
-        }
-        else if((myconfig[selected_game]->recommended_columns == 0 || local_cols >= myconfig[selected_game]->recommended_columns)
-          && (myconfig[selected_game]->recommended_rows > 0 && local_rows < myconfig[selected_game]->recommended_rows))
-        {
-          //Only rows red
-          sprintf(msg, "%dx", local_cols);
-          mvaddstr(1 + i - removedlines, x, msg);
-          x += strlen(msg);
-          sprintf(msg, "%d", local_rows);
-          attron(red);
-          mvaddstr(1 + i - removedlines, x, msg);
-          attroff(red);
-        }
-        else
-        {
-          //All in white
-          sprintf(msg, "%dx%d", local_cols, local_rows);
-          mvaddstr(1 + i - removedlines, x, msg);
-        }
+      char *your_term_size_end = banner_var_value("$YOURTERMSIZEEND");
+      mvaddstr(1 + i - removedlines, x, your_term_size_end);
+      x += strlen(your_term_size_end);
      
       continue;
       
