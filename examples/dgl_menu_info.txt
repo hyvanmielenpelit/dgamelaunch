@@ -11,6 +11,7 @@ Download:         https://github.com/hyvanmielenpelit/GnollHack/releases
 $ATTR(15)Tutorials$ATTR()
 1. Starting Guide for Beginners
    - https://github.com/hyvanmielenpelit/GnollHack/wiki/Starting-Guide-for-Beginners
+
 2. Starting Guide for NetHack Veterans
    - https://github.com/hyvanmielenpelit/GnollHack/wiki/Starting-Guide-for-NetHack-Veterans
 
