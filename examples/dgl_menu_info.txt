@@ -1,0 +1,20 @@
+## $SERVERID
+
+Server maintained by Sound Mind Games.
+
+Contact email:    gnollhack@hyvanmielenpelit.fi
+Discord server:   https://discord.gg/qgz4JQm
+Discussion forum: https://community.soundmindgames.com/forums/gnollhack.18/
+Wiki:             https://github.com/hyvanmielenpelit/GnollHack/wiki
+Download:         https://github.com/hyvanmielenpelit/GnollHack/releases
+
+$ATTR(15)Tutorials$ATTR()
+1. Starting Guide for Beginners
+   - https://github.com/hyvanmielenpelit/GnollHack/wiki/Starting-Guide-for-Beginners
+2. Starting Guide for NetHack Veterans
+   - https://github.com/hyvanmielenpelit/GnollHack/wiki/Starting-Guide-for-NetHack-Veterans
+
+
+q) Return
+
+=>
