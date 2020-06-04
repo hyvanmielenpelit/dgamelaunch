@@ -2681,18 +2681,19 @@ char* insert_commas (char* src) {
     int comma_number = (n_length - 1) / 3;
     char* buf2 = calloc(n_length + comma_number + 1, sizeof(char));
     int cur_comma_count = 0;
-    int char_count = 0;
+    int char_count = 0, num_count = 0;
 
     for(int i = n_length - 1; i >= 0; i--)
     {
-      if(char_count % 3 == 0 && char_count > 0)
+      if(num_count % 3 == 0 && num_count > 0)
       {
         buf2[i + comma_number - cur_comma_count] = ',';
         cur_comma_count++;
         char_count++;
       }
-      buf2[i + comma_number -cur_comma_count] = src[i];
+      buf2[i + comma_number - cur_comma_count] = src[i];
       char_count++;
+      num_count++;
     }
     return buf2;
 }
