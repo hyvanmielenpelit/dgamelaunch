@@ -3179,21 +3179,22 @@ loginprompt (int from_ttyplay)
       return;
 
   if (passwordgood (pw_buf))
-    {
-	if (me->flags & DGLACCT_LOGIN_LOCK) {
-	    clear ();
-	    mvprintw(5, 1, "Sorry, that account has been banned.--More--");
-	    dgl_getch();
-	    return;
-	}
+  {
+	    if (me->flags & DGLACCT_LOGIN_LOCK)
+      {
+          clear ();
+          mvprintw(5, 1, "Sorry, that account has been banned.--More--");
+          dgl_getch();
+          return;
+      }
 
       loggedin = 1;
       if (from_ttyplay)
-	  setproctitle("%s [watching %s]", me->username, chosen_name);
+	      setproctitle("%s [watching %s]", me->username, chosen_name);
       else
-	  setproctitle("%s", me->username);
+	      setproctitle("%s", me->username);
       dgl_exec_cmdqueue(globalconfig.cmdqueue[DGLTIME_LOGIN], 0, me);
-    }
+  }
   else 
   {
     me = NULL;
