@@ -827,7 +827,7 @@ populate_games(int xgame, int *l, struct dg_user *me)
 				}
 				replacestr++;
 
-				ttrecdir = dgl_format_str(game, me, myconfig[game]->ttyrecdir, playername);
+				ttrecdir = dgl_format_str(game, NULL, myconfig[game]->ttyrecdir, playername);
 				if (!ttrecdir)
 					continue;
 				snprintf(ttyrecname, 130, "%s%s", ttrecdir, replacestr);
