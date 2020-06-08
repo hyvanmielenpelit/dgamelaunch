@@ -175,6 +175,7 @@ cpy_me(struct dg_user *me)
 	if (me->env)      tmp->env      = strdup(me->env);
 	if (me->password) tmp->password = strdup(me->password);
 	tmp->flags = me->flags;
+  tmp->password_type = me->password_type;
     }
     return tmp;
 }
@@ -2821,60 +2822,73 @@ changepw (int dowrite)
   }
 
   while (error)
+  {
+    char repeatbuf[DGL_PASSWDLEN + 1];
+    clear();
+
+    drawbanner(&banner);
+
+    mvprintw(5, 1, "Please enter a%s password of up to %i characters.", loggedin ? " new" : "", DGL_PASSWDLEN);
+    mvaddstr(6, 1, "Blank line to abort.");
+    mvaddstr(8, 1, "=> ");
+
+    if (error == 1)
     {
-      char repeatbuf[DGL_PASSWDLEN+1];
-      clear ();
-
-      drawbanner (&banner);
-
-      mvprintw (5, 1,
-                "Please enter a%s password. Remember that this is sent over the net",
-                loggedin ? " new" : "");
-      mvaddstr (6, 1,
-                "in plaintext, so make it something new and expect it to be relatively");
-      mvaddstr (7, 1, "insecure.");
-      mvprintw (8, 1,
-                "%i character max. No ':' characters. Blank line to abort.", DGL_PASSWDLEN);
-      mvaddstr (10, 1, "=> ");
-
-      if (error == 1)
-        {
-          mvaddstr (15, 1, "Sorry, the passwords don't match. Try again.");
-          move (10, 4);
-        }
-
-      refresh ();
-
-      if (mygetnstr (buf, DGL_PASSWDLEN, 0) != OK)
-	  return 0;
-
-      if (*buf == '\0')
-        return 0;
-
-      if (strchr (buf, ':') != NULL) {
-	  debug_write("cannot have ':' in passwd");
-        graceful_exit (112);
-      }
-
-      mvaddstr (12, 1, "And again:");
-      mvaddstr (13, 1, "=> ");
-
-      if (mygetnstr (repeatbuf, DGL_PASSWDLEN, 0) != OK)
-	  return 0;
-
-      if (!strcmp (buf, repeatbuf))
-        error = 0;
-      else
-        error = 1;
+      mvaddstr(13, 1, "Sorry, the passwords don't match. Try again.");
+      move(8, 4);
     }
 
+    refresh();
+
+    if (mygetnstr(buf, DGL_PASSWDLEN, 0) != OK)
+      return 0;
+
+    if (*buf == '\0')
+      return 0;
+
+    if (strchr(buf, ':') != NULL)
+    {
+      debug_write("cannot have ':' in passwd");
+      graceful_exit(112);
+    }
+
+    mvaddstr(12, 1, "And again:");
+    mvaddstr(13, 1, "=> ");
+
+    if (mygetnstr(repeatbuf, DGL_PASSWDLEN, 0) != OK)
+      return 0;
+
+    if (!strcmp(buf, repeatbuf))
+      error = 0;
+    else
+      error = 1;
+  }
+
+  setpw(buf, dowrite);
+
+  return 1;
+}
+
+void setpw(char* pw, int dowrite)
+{
+  int i;
+  char salt[] = "$6$1234567890123456";
+
+  if (((i = open("/dev/urandom", O_RDONLY)) == -1) ||
+      (read(i, salt + 3, 16) != 16) ||
+      (close(i) == -1))
+    graceful_exit(150);
+
+  for (i = 3; i < 3 + 16; i++)
+    salt[i] = ("abcdefghijklmnopqrstuvwxyzABCDEF"
+               "GHIJKLMNOPQRSTUVWXYZ0123456789./")[salt[i] & 63];
+  
   free(me->password);
-  me->password = strdup (crypt (buf, buf));
+  me->password = strdup (crypt (pw, salt));
+  me->password_type = 1;
 
   if (dowrite)
     writefile (0);
-
-  return 1;
 }
 
 /* ************************************************************* */
@@ -3352,6 +3366,7 @@ newuser ()
   me->email = strdup (buf);
   me->env = calloc (1, 1);
   me->flags = 0;
+  me->password_type = 1;
 
   loggedin = 1;
 
@@ -3370,13 +3385,23 @@ passwordgood (char *cpw)
   char *crypted;
   assert (me != NULL);
 
-  crypted = crypt (cpw, cpw);
-  if (crypted == NULL)
-      return 0;
-  if (!strncmp (crypted, me->password, DGL_PASSWDLEN))
-    return 1;
-  if (!strncmp (cpw, me->password, DGL_PASSWDLEN))
-    return 1;
+  if(me->password_type == 0)
+  {
+    crypted = crypt (cpw, cpw);
+    if (crypted == NULL)
+        return 0;
+    if (!strncmp (crypted, me->password, DGL_PASSWDLEN) || !strncmp (cpw, me->password, DGL_PASSWDLEN))
+    {
+      //Update to new format
+      setpw(cpw, 1);
+      return 1;
+    }
+  }
+  else if (me->password_type == 1)
+  {
+    if (!strncmp (crypt (cpw, me->password), me->password, 128))
+      return 1;
+  }
 
   return 0;
 }
@@ -3558,6 +3583,8 @@ userexist_callback(void *NotUsed, int argc, char **argv, char **colname)
 	    userexist_tmp_me->password = strdup(argv[i]);
 	else if (!strcmp(colname[i], "flags"))
 	    userexist_tmp_me->flags = atoi(argv[i]);
+	else if (!strcmp(colname[i], "password_type"))
+	    userexist_tmp_me->password_type = atoi(argv[i]);
 	else if (!strcmp(colname[i], "id"))
 	    userexist_tmp_me->id = atoi(argv[i]);
     }
@@ -3757,39 +3784,43 @@ writefile (int requirenew)
   signals_release();
 }
 #else
-void
-writefile (int requirenew)
+void writefile(int requirenew)
 {
-    sqlite3 *db;
-    char *errmsg = NULL;
-    int ret, retry = 10;
+  sqlite3 *db;
+  char *errmsg = NULL;
+  int ret, retry = 10;
 
-    char *qbuf;
+  char *qbuf;
 
-    if (requirenew) {
-	qbuf = sqlite3_mprintf("insert into dglusers (username, email, env, password, flags) values ('%q', '%q', '%q', '%q', %li)", me->username, me->email, me->env, me->password, me->flags);
-    } else {
-	qbuf = sqlite3_mprintf("update dglusers set username='%q', email='%q', env='%q', password='%q', flags=%li where id=%i", me->username, me->email, me->env, me->password, me->flags, me->id);
-    }
+  if (requirenew)
+  {
+    qbuf = sqlite3_mprintf("insert into dglusers (username, email, env, password, flags, password_type) values ('%q', '%q', '%q', '%q', %li, %li)", me->username, me->email, me->env, me->password, me->flags, me->password_type);
+  }
+  else
+  {
+    qbuf = sqlite3_mprintf("update dglusers set username='%q', email='%q', env='%q', password='%q', flags=%li, password_type=%li where id=%i", me->username, me->email, me->env, me->password, me->flags, me->id, me->password_type);
+  }
 
-    ret = sqlite3_open(globalconfig.passwd, &db);
-    if (ret) {
-	sqlite3_close(db);
-	debug_write("writefile sqlite3_open failed");
-	graceful_exit(97);
-    }
-
-    sqlite3_busy_timeout(db, 10000);
-    ret = sqlite3_exec(db, qbuf, NULL, NULL, &errmsg);
-
-    sqlite3_free(qbuf);
-
-    if (ret != SQLITE_OK) {
-	sqlite3_close(db);
-	debug_write("writefile sqlite3_exec failed");
-	graceful_exit(98);
-    }
+  ret = sqlite3_open(globalconfig.passwd, &db);
+  if (ret)
+  {
     sqlite3_close(db);
+    debug_write("writefile sqlite3_open failed");
+    graceful_exit(97);
+  }
+
+  sqlite3_busy_timeout(db, 10000);
+  ret = sqlite3_exec(db, qbuf, NULL, NULL, &errmsg);
+
+  sqlite3_free(qbuf);
+
+  if (ret != SQLITE_OK)
+  {
+    sqlite3_close(db);
+    debug_write("writefile sqlite3_exec failed");
+    graceful_exit(98);
+  }
+  sqlite3_close(db);
 }
 #endif
 

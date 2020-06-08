@@ -142,6 +142,7 @@ struct dg_user
   char *env;
   char *password;
   int flags;			/* dgl_acct_flag bitmask */
+  int password_type;
 };
 
 struct dg_banner
@@ -452,6 +453,7 @@ extern int compare_xlogfile_data_endtime(const void *s1, const void *s2);
 
 extern void change_email(void);
 extern int changepw(int dowrite);
+extern void setpw(char *pw, int dowrite);
 extern void domailuser(char *username);
 extern void drawmenu(void);
 extern void freefile(void);
