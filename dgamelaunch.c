@@ -164,20 +164,25 @@ static struct dg_loggedgames_cols *default_loggedgames_cols_list[DGL_MAXLOGGEDGA
 struct dg_user *
 cpy_me(struct dg_user *me)
 {
-    struct dg_user *tmp = malloc(sizeof(struct dg_user));
+  struct dg_user *tmp = malloc(sizeof(struct dg_user));
 
-    if (tmp && me) {
+  if (tmp && me)
+  {
 #ifdef USE_SQLITE3
-	tmp->id = me->id;
+    tmp->id = me->id;
 #endif
-	if (me->username) tmp->username = strdup(me->username);
-	if (me->email)    tmp->email    = strdup(me->email);
-	if (me->env)      tmp->env      = strdup(me->env);
-	if (me->password) tmp->password = strdup(me->password);
-	tmp->flags = me->flags;
-  tmp->password_type = me->password_type;
-    }
-    return tmp;
+    if (me->username)
+      tmp->username = strdup(me->username);
+    if (me->email)
+      tmp->email = strdup(me->email);
+    if (me->env)
+      tmp->env = strdup(me->env);
+    if (me->password)
+      tmp->password = strdup(me->password);
+    tmp->flags = me->flags;
+    tmp->password_type = me->password_type;
+  }
+  return tmp;
 }
 
 #ifndef HAVE_SETENV
@@ -3592,54 +3597,57 @@ userexist_callback(void *NotUsed, int argc, char **argv, char **colname)
 }
 
 struct dg_user *
-userexist (char *cname, int isnew)
+userexist(char *cname, int isnew)
 {
-    sqlite3 *db;
-    char *errmsg = NULL;
-    int ret, retry = 10;
+  sqlite3 *db;
+  char *errmsg = NULL;
+  int ret, retry = 10;
 
-    char *qbuf;
+  char *qbuf;
 
-    char tmpbuf[DGL_PLAYERNAMELEN+2];
+  char tmpbuf[DGL_PLAYERNAMELEN + 2];
 
-    memset(tmpbuf, 0, DGL_PLAYERNAMELEN+2);
-    strncpy(tmpbuf, cname, (isnew ? globalconfig.max_newnick_len : DGL_PLAYERNAMELEN));
+  memset(tmpbuf, 0, DGL_PLAYERNAMELEN + 2);
+  strncpy(tmpbuf, cname, (isnew ? globalconfig.max_newnick_len : DGL_PLAYERNAMELEN));
 
-    /* Check that the nick doesn't interfere with already registered nicks */
-    if (isnew && (strlen(cname) >= globalconfig.max_newnick_len))
-	strcat(tmpbuf, "%");
+  /* Check that the nick doesn't interfere with already registered nicks */
+  if (isnew && (strlen(cname) >= globalconfig.max_newnick_len))
+    strcat(tmpbuf, "%");
 
-    qbuf = sqlite3_mprintf("select * from dglusers where username = '%q' collate nocase limit 1", tmpbuf);
+  qbuf = sqlite3_mprintf("select * from dglusers where username = '%q' collate nocase limit 1", tmpbuf);
 
-    ret = sqlite3_open(globalconfig.passwd, &db);
-    if (ret) {
-	sqlite3_close(db);
-	debug_write("sqlite3_open failed");
-	graceful_exit(96);
-    }
-
-    if (userexist_tmp_me) {
-	free(userexist_tmp_me->username);
-	free(userexist_tmp_me->email);
-	free(userexist_tmp_me->env);
-	free(userexist_tmp_me->password);
-	free(userexist_tmp_me);
-	userexist_tmp_me = NULL;
-    }
-
-    sqlite3_busy_timeout(db, 10000);
-    ret = sqlite3_exec(db, qbuf, userexist_callback, 0, &errmsg);
-
-    sqlite3_free(qbuf);
-
-    if (ret != SQLITE_OK) {
-	sqlite3_close(db);
-	debug_write("sqlite3_exec failed");
-	graceful_exit(108);
-    }
+  ret = sqlite3_open(globalconfig.passwd, &db);
+  if (ret)
+  {
     sqlite3_close(db);
+    debug_write("sqlite3_open failed");
+    graceful_exit(96);
+  }
 
-    return userexist_tmp_me;
+  if (userexist_tmp_me)
+  {
+    free(userexist_tmp_me->username);
+    free(userexist_tmp_me->email);
+    free(userexist_tmp_me->env);
+    free(userexist_tmp_me->password);
+    free(userexist_tmp_me);
+    userexist_tmp_me = NULL;
+  }
+
+  sqlite3_busy_timeout(db, 10000);
+  ret = sqlite3_exec(db, qbuf, userexist_callback, 0, &errmsg);
+
+  sqlite3_free(qbuf);
+
+  if (ret != SQLITE_OK)
+  {
+    sqlite3_close(db);
+    debug_write("sqlite3_exec failed");
+    graceful_exit(108);
+  }
+  sqlite3_close(db);
+
+  return userexist_tmp_me;
 }
 #endif
 
@@ -3798,7 +3806,7 @@ void writefile(int requirenew)
   }
   else
   {
-    qbuf = sqlite3_mprintf("update dglusers set username='%q', email='%q', env='%q', password='%q', flags=%li, password_type=%li where id=%i", me->username, me->email, me->env, me->password, me->flags, me->id, me->password_type);
+    qbuf = sqlite3_mprintf("update dglusers set username='%q', email='%q', env='%q', password='%q', flags=%li, password_type=%li where id=%i", me->username, me->email, me->env, me->password, me->flags, me->password_type, me->id);
   }
 
   ret = sqlite3_open(globalconfig.passwd, &db);
