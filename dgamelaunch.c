@@ -1871,8 +1871,15 @@ void latestgamesmenu(int gameid)
       
       lines[linenum] = line;
       linelength = strlen(buf2);
-
       line->rownumber = linenum + 1;
+
+      //Add a line feed, if it is missing from the end of the line
+      if(buf2[linelength - 1] != '\n')
+      {
+        buf2[linelength] = '\n';
+        buf2[linelength + 1] = '\0';
+        linelength++;
+      }
 
       while(finishafterthiscolumn == 0)
       {
