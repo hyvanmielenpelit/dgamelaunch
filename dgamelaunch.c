@@ -2389,24 +2389,32 @@ void latestgamesmenu(int gameid)
                 case LOGGEDGAME_COL_DIFFICULTY:
                 switch(curline->difficulty)
                 {
-                  case -2:
+                  case -4:
                   value = "E";
                   break;
 
-                  case -1:
+                  case -3:
                   value = "e";
                   break;
 
-                  case 0:
-                  value = "n";
+                  case -2:
+                  value = "d";
                   break;
-                
-                  case 1:
+
+                  case -1:
                   value = "h";
                   break;
 
+                  case 0:
+                  value = "x";
+                  break;
+                
+                  case 1:
+                  value = "m";
+                  break;
+
                   case 2:
-                  value = "H";
+                  value = "M";
                   break;
 
                   default:
