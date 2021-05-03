@@ -2398,7 +2398,7 @@ void latestgamesmenu(int gameid)
                   break;
 
                   case -2:
-                  value = "d";
+                  value = "a";
                   break;
 
                   case -1:
