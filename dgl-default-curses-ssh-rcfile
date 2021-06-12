@@ -15,7 +15,7 @@ OPTIONS=perm_invent
 OPTIONS=noshowexp,showscore,time,color,!autopickup
 OPTIONS=autodig,fruit:slime mold,boulder:0
 OPTIONS=number_pad:2,altmeta,force_invmenu,hilite_pet
-OPTIONS=lit_corridor
+OPTIONS=lit_corridor,showmove
 OPTIONS=autostatuslines,statuslines:4
 
 # Highlight menu lines with different colors. You need to define the colors
