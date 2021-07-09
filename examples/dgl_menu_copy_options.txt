@@ -3,6 +3,7 @@
 Select a game from which to copy the options:
 
 $RMLINEIFGAME(gnollhack)a) $DEFGAMENAME(gnollhack)
+$RMLINEIFGAME(gnollhack2)b) $DEFGAMENAME(gnollhack2)
 
 q) Return
 

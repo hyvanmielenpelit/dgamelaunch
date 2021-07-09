@@ -1,4 +1,12 @@
 #!/bin/bash
+#
+# Must have 2 or 3 arguments
+# - First Argument: Directory Name, e.g. gnh
+# - Second Argument: Game Short Name, e.g. gnollhack
+# - Third Argument: Server Prefix, e.g. eu (optional)
+#
+# Example: ./create-new-gnollhack-version gnh2 gnollhack2 eu
+#
 
 if [ $# -eq 0 ]; then
   echo "No arguments. The first argument must be the name of the GnollHack directory. For example, ghn5."

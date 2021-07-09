@@ -44,8 +44,54 @@ OPTIONS=hilite_status:hunger/satiated/yellow/hungry/orange/weak/red&bold/faintin
 ## Skill
 OPTIONS=hilite_status:skill-availability/skill/green
 
-## Skill
+## Two weapon fighting
 OPTIONS=hilite_status:two-weapon-fighting/2weap/yellow
+
+## Weapon styles
+OPTIONS=hilite_status:primary-weapon/R0/red
+OPTIONS=hilite_status:primary-weapon/2hR0/red
+OPTIONS=hilite_status:primary-weapon/Re/red
+OPTIONS=hilite_status:primary-weapon/2hRe/red
+OPTIONS=hilite_status:primary-weapon/R/green
+OPTIONS=hilite_status:primary-weapon/2hR/green
+OPTIONS=hilite_status:primary-weapon/T/orange
+OPTIONS=hilite_status:primary-weapon/A/orange
+OPTIONS=hilite_status:primary-weapon/MD/magenta
+OPTIONS=hilite_status:primary-weapon/D/magenta
+OPTIONS=hilite_status:primary-weapon/2hMD/magenta
+OPTIONS=hilite_status:primary-weapon/2hD/magenta
+OPTIONS=hilite_status:primary-weapon/*/gray
+OPTIONS=hilite_status:primary-weapon/P/blue
+OPTIONS=hilite_status:primary-weapon/2hP/blue
+OPTIONS=hilite_status:primary-weapon/c/brown
+OPTIONS=hilite_status:primary-weapon/!/cyan
+OPTIONS=hilite_status:primary-weapon/-/black
+OPTIONS=hilite_status:primary-weapon/g/black
+OPTIONS=hilite_status:primary-weapon/mg/black
+
+OPTIONS=hilite_status:secondary-weapon/R0/red
+OPTIONS=hilite_status:secondary-weapon/2hR0/red
+OPTIONS=hilite_status:secondary-weapon/Re/red
+OPTIONS=hilite_status:secondary-weapon/2hRe/red
+OPTIONS=hilite_status:secondary-weapon/R/green
+OPTIONS=hilite_status:secondary-weapon/2hR/green
+OPTIONS=hilite_status:secondary-weapon/T/orange
+OPTIONS=hilite_status:secondary-weapon/A/orange
+OPTIONS=hilite_status:secondary-weapon/MD/magenta
+OPTIONS=hilite_status:secondary-weapon/D/magenta
+OPTIONS=hilite_status:secondary-weapon/2hMD/magenta
+OPTIONS=hilite_status:secondary-weapon/2hD/magenta
+OPTIONS=hilite_status:secondary-weapon/*/gray
+OPTIONS=hilite_status:secondary-weapon/P/blue
+OPTIONS=hilite_status:secondary-weapon/2hP/blue
+OPTIONS=hilite_status:secondary-weapon/c/brown
+OPTIONS=hilite_status:secondary-weapon/!/cyan
+OPTIONS=hilite_status:secondary-weapon/-/black
+OPTIONS=hilite_status:secondary-weapon/g/black
+OPTIONS=hilite_status:secondary-weapon/mg/black
+
+## Grabbed
+OPTIONS=hilite_status:condition/grab/yellow
 
 ## Mental
 OPTIONS=hilite_status:condition/hallu/yellow
